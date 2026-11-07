@@ -1,4 +1,5 @@
 import {PcmBytes} from './pcm-bytes.js';
+import './duet.js';
 const $ = id => document.getElementById(id);
 let catalog, unit, phrase, run = null, revealed = false, queued = null, sending = false, sequence = 0;
 const players = [$('audio-a'), $('audio-b')];
@@ -91,6 +92,7 @@ async function finish(current, message = 'Ready for another performance.') {
 }
 async function start(mode) {
   if (run) return;players.forEach(player=>player.pause());
+  window.dispatchEvent(new Event('lyra-other-play'));
   const current={mode,id:null,startedAt:performance.now(),abort:new AbortController(),ending:false,released:false};
   run=current;sequence=0;queued=null;interfaceState();$('state').textContent='Starting';status('Starting the local output engine…');
   for (const id of ['first-packet','queue','underruns','compute']) $(id).textContent='—';
@@ -152,7 +154,8 @@ $('stop').addEventListener('click',()=>run&&finish(run,'Stopped.'));
 $('release').addEventListener('click',()=>{if(!run?.id)return;run.released=true;control({release:true});interfaceState();$('state').textContent='Finishing';});
 $('phrase').addEventListener('change',choosePhrase);
 $('reveal').addEventListener('click',()=>{revealed=!revealed;players.forEach((_,i)=>$('label-'+['a','b'][i]).textContent=revealed?phrase.choices[i].label:'Label hidden');$('reveal').textContent=revealed?'Hide labels':'Reveal source / reconstruction';});
-players.forEach(player=>player.addEventListener('play',()=>{players.forEach(other=>{if(other!==player)other.pause();});if(run)finish(run,'Listening comparison.');}));
+players.forEach(player=>player.addEventListener('play',()=>{window.dispatchEvent(new Event('lyra-other-play'));players.forEach(other=>{if(other!==player)other.pause();});if(run)finish(run,'Listening comparison.');}));
+window.addEventListener('lyra-duet-play',()=>{players.forEach(player=>player.pause());if(run)finish(run,'Playing the prepared duet.');});
 document.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&run){event.preventDefault();finish(run,'Stopped.');return;}
   if(event.repeat||event.metaKey||event.ctrlKey||event.altKey||['INPUT','SELECT','TEXTAREA'].includes(event.target.tagName)||event.target.isContentEditable)return;

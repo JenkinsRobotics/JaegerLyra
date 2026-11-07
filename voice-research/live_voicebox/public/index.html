@@ -8,6 +8,23 @@
     <div class="reconstruction-path" aria-label="Current reconstruction process"><span><strong>Source recording</strong>Kokoro reference</span><b aria-hidden="true">→</b><span><strong>Acoustic controls</strong>Prepared offline</span><b aria-hidden="true">→</b><span><strong>Lyra voicebox</strong>Reconstructed waveform</span></div>
     <p class="source-note">Kokoro supplied the recordings and synthetic training audio. Its model is not running during Lyra reconstruction playback.</p>
   </section>
+  <section class="duet" id="duet" aria-labelledby="duet-title" hidden>
+    <div class="section-top"><div><p class="eyebrow">TWO VOICES · VOCALS ONLY</p><h2 id="duet-title">A duet, rebuilt by Lyra.</h2></div><span class="duet-badge">Prepared singing study</span></div>
+    <p class="duet-song" id="duet-song"></p><p class="duet-description">Heart carries the melody. Michael answers. Dry voices, short overlaps, no instruments. A custom melody and timing arrangement of the supplied lyrics.</p>
+    <div class="duet-parts" aria-label="Listen to vocal parts"><button data-part="duet" aria-pressed="true">Both voices</button><button data-part="lead" aria-pressed="false">Heart · lead</button><button data-part="reply" aria-pressed="false">Michael · response</button></div>
+    <div class="duet-score" id="duet-score" aria-label="Two vocal tracks"></div>
+    <div class="duet-caption"><p id="duet-now">Ready for the first response.</p><span id="duet-time">0:00</span></div>
+    <div class="duet-transport"><button id="duet-play" class="primary">▶ Play voices</button><label class="visually-hidden" for="duet-seek">Seek both voices</label><input id="duet-seek" type="range" min="0" max="30" step=".01" value="0"><button id="duet-mute" aria-pressed="false">Mute output</button></div>
+    <p class="duet-clock" id="duet-transport-note">Two separate tracks · synchronized playback</p>
+    <div class="duet-channel-controls">
+      <div><div class="duet-channel-title"><strong>Heart · lead</strong><span id="duet-lead-state">Ready</span><button id="duet-lead-mute" aria-label="Mute or unmute Heart" aria-pressed="false">Mute</button></div><label for="duet-lead-level">Heart volume <output id="duet-lead-level-value">100%</output></label><input id="duet-lead-level" type="range" min="0" max="100" value="100"><a href="/duet-audio/lead.wav" download="lyra-heart.wav">Download Heart ↗</a></div>
+      <div><div class="duet-channel-title"><strong>Michael · response</strong><span id="duet-reply-state">Ready</span><button id="duet-reply-mute" aria-label="Mute or unmute Michael" aria-pressed="false">Mute</button></div><label for="duet-reply-level">Michael volume <output id="duet-reply-level-value">100%</output></label><input id="duet-reply-level" type="range" min="0" max="100" value="100"><a href="/duet-audio/reply.wav" download="lyra-michael.wav">Download Michael ↗</a></div>
+    </div>
+    <div class="duet-actions"><button id="duet-stop">■ Stop / reset</button><span id="duet-tempo"></span></div>
+    <p class="duet-provenance"><strong>Hybrid demonstration.</strong> Kokoro prepared natural speech from your lyrics. Lyra decoded the captured controls and applied the authored melody and vowel timing. The two saved vocal tracks play independently on the same clock, each with its own volume and mute. It is not independent text-to-singing or a recreation of the original singers.</p>
+    <details class="duet-details"><summary>Arrangement and vocal lines</summary><p id="duet-arrangement"></p><p id="duet-attribution"></p><div id="duet-lines"></div></details>
+    <p class="help" id="duet-status" role="status">Audio starts only when you press Play.</p>
+  </section>
   <section class="instrument" aria-label="Live vocal instrument">
     <div class="stage">
       <div class="stage-top"><span id="voice-label">HEART / CALM</span><span class="state" id="state">Ready</span></div>

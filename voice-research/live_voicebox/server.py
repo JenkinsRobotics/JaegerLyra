@@ -2,6 +2,7 @@
 import argparse
 import json
 import mimetypes
+import re
 import socket
 import time
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
@@ -10,6 +11,7 @@ from urllib.parse import urlsplit,parse_qs
 from runtime import Engine,ROOT,RATE,sha
 
 PUBLIC=Path(__file__).resolve().parent/'public'
+DUET=ROOT/'evidence/duet-demo/v1/output'
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -36,6 +38,20 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             self.check_local();parsed=urlsplit(self.path)
+            if parsed.path=='/api/duet':
+                if not (DUET/'manifest.json').is_file():return self.reply({'available':False})
+                data=json.loads((DUET/'manifest.json').read_text())
+                if not data.get('complete'):return self.reply({'available':False})
+                return self.reply({**data,'available':True})
+            if parsed.path.startswith('/duet-audio/'):
+                name=parsed.path.rsplit('/',1)[-1]
+                if parsed.path!='/duet-audio/'+name or name not in ('duet.wav','lead.wav','reply.wav') or not (DUET/'manifest.json').is_file():
+                    return self.reply({'error':'Not found'},404)
+                data=json.loads((DUET/'manifest.json').read_text())
+                entry=next((f for f in data.get('files',[]) if f['file']==name),None)
+                if not data.get('complete') or entry is None or sha(DUET/name)!=entry['sha256']:
+                    return self.reply({'error':'Duet file is unavailable or changed'},409)
+                return self.file(DUET/name,'audio/wav')
             if parsed.path=='/api/catalog':return self.reply(self.server.engine.catalog())
             if parsed.path=='/api/status':
                 query=parse_qs(parsed.query);return self.reply(self.server.engine.get(query.get('id',[''])[0]).snapshot())
@@ -52,14 +68,30 @@ class Handler(BaseHTTPRequestHandler):
                 if sha(path)!=choice['sha256']:raise ValueError('Comparison file changed')
                 return self.file(path,'audio/wav')
             relative='index.html' if parsed.path=='/' else parsed.path.lstrip('/')
-            if relative not in ('index.html','style.css','app.js','pcm-player.js','pcm-ring.js','pcm-bytes.js'):
+            if relative not in ('index.html','style.css','app.js','duet.js','voice-pair.js','pcm-player.js','pcm-ring.js','pcm-bytes.js'):
                 return self.reply({'error':'Not found'},404)
             return self.file(PUBLIC/relative,mimetypes.guess_type(relative)[0] or 'application/octet-stream')
         except (ValueError,KeyError) as exc:self.reply({'error':str(exc)},400)
         except (BrokenPipeError,ConnectionResetError,socket.timeout):pass
 
     def file(self,path,content_type):
-        body=path.read_bytes();self.send_response(200);self.send_header('Content-Type',content_type)
+        body=path.read_bytes();size=len(body);status=200;content_range=None
+        if content_type=='audio/wav' and self.headers.get('Range'):
+            match=re.fullmatch(r'bytes=(\d*)-(\d*)',self.headers['Range'])
+            valid=match is not None and any(match.groups())
+            if valid:
+                first,last=match.groups()
+                if first:
+                    start=int(first);end=min(int(last),size-1) if last else size-1
+                else:start=max(0,size-int(last));end=size-1
+                valid=0<=start<=end<size
+            if not valid:
+                self.send_response(416);self.send_header('Content-Range',f'bytes */{size}')
+                self.send_header('Content-Length','0');self.end_headers();return
+            status=206;content_range=f'bytes {start}-{end}/{size}';body=body[start:end+1]
+        self.send_response(status);self.send_header('Content-Type',content_type)
+        if content_type=='audio/wav':self.send_header('Accept-Ranges','bytes')
+        if content_range:self.send_header('Content-Range',content_range)
         self.send_header('Content-Length',str(len(body)));self.send_header('Cache-Control','no-store')
         self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(body)
 

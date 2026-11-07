@@ -75,6 +75,7 @@ evidence/
 voice-research/data/
 public/research/
 public/audio/
+media/
 
 # Only the audited self-contained demo bundle is versioned
 # (synthetic reference WAVs, acoustic controls and our decoder weights).

@@ -63,6 +63,8 @@ def isolation_check():
                 base='http://127.0.0.1:'+address
                 with urlopen(base+'/api/catalog',timeout=10) as r:catalog=json.load(r)
                 assert catalog['project']=='Jaeger Lyra' and catalog['demonstrates']=='reconstruction-playback'
+                with urlopen(base+'/api/duet',timeout=10) as r:duet=json.load(r)
+                assert duet=={'available':False},'Local user media must not be required by a fresh checkout'
                 request=Request(base+'/api/session',data=json.dumps({'mode':'word','item':'af_heart-palm'}).encode(),headers={'Content-Type':'application/json'})
                 with urlopen(request,timeout=10) as r:session=json.load(r)
                 with urlopen(base+'/api/stream?id='+session['id'],timeout=10) as r:audio=r.read()
@@ -103,6 +105,8 @@ def main():
     run('legacy-adapter-tests',[sys.executable,'-m','unittest','discover','-s','tests','-p','test_*.py','-v'])
     run('browser-audio-tests',['node','--test','voice-research/live_voicebox/test_pcm.mjs'])
     run('browser-syntax',['node','--check','voice-research/live_voicebox/public/app.js'])
+    run('duet-browser-syntax',['node','--check','voice-research/live_voicebox/public/duet.js'])
+    run('voice-pair-tests',['node','--test','voice-research/live_voicebox/test_voice_pair.mjs'])
     isolated=isolation_check();print('Isolated source-checkout playback: passed',flush=True)
     report={'complete':True,'audioPlayed':False,'bundleFiles':len(checks['files']),
         'phrases':phrases,'pretrainedEngineImports':forbidden,'isolatedCheckout':isolated}

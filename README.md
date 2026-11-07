@@ -4,6 +4,8 @@
 
 **R&D alpha 0.1 — `v0.1.0-alpha.1`.** This snapshot preserves the working reconstruction prototype for later research. No further model development is scheduled as part of this release.
 
+The final alpha 0.1 handoff is on `master` and `alpha/0.1`; the original `v0.1.0-alpha.1` tag is preserved. See the [project page](https://jenkinsrobotics.github.io/JaegerLyra/) and [release notes](docs/releases/0.1.0-alpha.1.md).
+
 The working demo demonstrates **reconstruction playback**. Lyra's waveform decoder rebuilds captured speech from saved continuous acoustic controls, with adjustable pitch, volume, resonance, brightness, pace and vibrato.
 
 It does **not** yet create arbitrary new sentences, understand incoming speech, or clone a voice from a short sample. Those are research goals for the wider framework.
@@ -44,6 +46,8 @@ Open **http://127.0.0.1:8794/**. Audio starts only when you press a playback but
 - **Voice character:** resonance and brightness change spectral colour; pace changes duration independently of pitch; vibrato varies pitch. These are experimental transformations, not anatomical vocal-tract controls or proven voice matching.
 - **Reconstruction comparison:** nine phrases with source/reconstruction labels that can be revealed.
 - **Reconstruct phrase live:** streams decoded audio in small packets. This is streaming a prepared performance, not streaming a new sentence from text.
+
+An optional **two-voice singing study** appears above the instrument when local duet assets are prepared. It uses Kokoro natural speech preparation, followed by Lyra neural decoding and an authored pitch/timing score. The two dry vocal tracks play as independent sources on one clock, with separate mute/volume controls; the player does not use a merged recording. It is playback of prepared hybrid voices, not independent Lyra text-to-singing. User media and the supplied song lyrics remain local and are not part of the bundled alpha. See [the duet workflow](docs/DUET_DEMO.md).
 
 ## The intended framework
 

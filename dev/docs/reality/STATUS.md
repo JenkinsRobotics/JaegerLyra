@@ -23,6 +23,8 @@ This alpha is an R&D handoff. Further model development is deferred.
 - A general non-backpropagation learning solution, strict clean-room provenance or Kokoro-level new-speech quality.
 - A JaegerOS module/slot adapter or installable production inference API (planned).
 
+CI uses a Linux runner; the initially inherited macOS runner configuration was rejected by GitHub before any test steps. Local validation was performed on Apple Silicon.
+
 ## Validation
 
 Local alpha checks passed: **163 core + 14 runtime/colour + 26 legacy-adapter + 6 browser-audio = 209 automated tests**. All 119 bundled file hashes passed, as did nine neutral/vibrato phrase checks, isolated-checkout playback, complete-word/hold HTTP checks and 198 shaped catalogue renders. Silent browser checks of a word and a shaped phrase completed automatically with zero observed underruns.

@@ -44,30 +44,36 @@ def isolation_check():
             shutil.copytree(ROOT/name,isolated/name,ignore=shutil.ignore_patterns('__pycache__'))
         with (isolated/'server.log').open('w+') as log:
             env={**os.environ};env.pop('PYTHONPATH',None)
-            process=subprocess.Popen([sys.executable,'-m','jaeger_lyra','--port','0'],cwd=isolated,
+            process=subprocess.Popen([sys.executable,'-u','-m','jaeger_lyra','--port','0'],cwd=isolated,
                 env=env,stdout=log,stderr=subprocess.STDOUT)
             try:
                 address=None
-                for _ in range(200):
+                # A fresh macOS runner may need more than ten seconds for
+                # numerical-library imports and bundle loading. This is a
+                # bounded readiness check, not an audio latency benchmark.
+                started=time.monotonic();deadline=started+60
+                while time.monotonic()<deadline:
                     log.seek(0);output=log.read()
                     if 'http://127.0.0.1:' in output:
                         address=output.split('http://127.0.0.1:',1)[1].split('/')[0];break
-                    if process.poll() is not None:raise AssertionError(output)
-                    time.sleep(.05)
-                assert address is not None,'Standalone server did not start'
+                    if process.poll() is not None:raise AssertionError('Standalone server exited:\n'+output)
+                    time.sleep(.1)
+                assert address is not None,'Standalone server was not ready within 60 seconds. See isolated-server.log.\n'+output
+                startup_s=time.monotonic()-started
                 base='http://127.0.0.1:'+address
-                with urlopen(base+'/api/catalog') as r:catalog=json.load(r)
+                with urlopen(base+'/api/catalog',timeout=10) as r:catalog=json.load(r)
                 assert catalog['project']=='Jaeger Lyra' and catalog['demonstrates']=='reconstruction-playback'
                 request=Request(base+'/api/session',data=json.dumps({'mode':'word','item':'af_heart-palm'}).encode(),headers={'Content-Type':'application/json'})
-                with urlopen(request) as r:session=json.load(r)
-                with urlopen(base+'/api/stream?id='+session['id']) as r:audio=r.read()
-                with urlopen(base+'/api/status?id='+session['id']) as r:state=json.load(r)
+                with urlopen(request,timeout=10) as r:session=json.load(r)
+                with urlopen(base+'/api/stream?id='+session['id'],timeout=10) as r:audio=r.read()
+                with urlopen(base+'/api/status?id='+session['id'],timeout=10) as r:state=json.load(r)
                 assert state['completed'] and len(audio)>1000
-                return {'passed':True,'outsideProjectFilesRequired':False,'samples':len(audio)//4}
+                return {'passed':True,'outsideProjectFilesRequired':False,'samples':len(audio)//4,'startup_s':startup_s}
             finally:
                 process.terminate()
                 try:process.wait(timeout=5)
                 except subprocess.TimeoutExpired:process.kill();process.wait()
+                log.seek(0);(OUT/'isolated-server.log').write_text(log.read())
 
 
 def main():

@@ -32,3 +32,5 @@ Local alpha checks passed: **163 core + 14 runtime/colour + 26 legacy-adapter + 
 The migration verifier checks the packaged file hashes, all core numerical tests, live runtime tests, browser PCM tests, neutral reconstruction and actual phrase-vibrato effects. Live HTTP and silent browser checks are recorded in the local `evidence/lyra-verification/` directory. See the final migration validation record for observed counts and timings; historical research measurements remain in their original files.
 
 The demo's runtime dependencies are pinned in `requirements.txt`. Optional historical experiments keep their original separate lock files and model/data notices.
+
+The fresh macOS CI runner passed all numerical, runtime and browser-audio tests, then exceeded the isolated-checkout harness's original ten-second startup limit. The harness now allows up to 60 seconds for cold imports and bundle loading, records actual startup time, bounds HTTP requests and retains the server log on failure. Hosted isolated playback is being rechecked; this startup allowance does not change audio generation or playback timing.

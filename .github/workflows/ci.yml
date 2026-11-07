@@ -7,7 +7,16 @@ permissions:
   contents: read
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    name: verify (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-26
+            platform: macos-arm64
+          - os: ubuntu-latest
+            platform: linux-x64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -25,5 +34,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lyra-verification
+          name: lyra-verification-${{ matrix.platform }}
           path: evidence/lyra-verification/

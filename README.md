@@ -24,6 +24,8 @@ The two A/B players compare a **Kokoro source recording** and a **Lyra reconstru
 
 ## Run the demo
 
+**macOS is a primary platform.** The alpha is locally verified on macOS 26 with Apple Silicon, and CI covers macOS ARM64 alongside Linux. Intel Mac compatibility has not yet been verified.
+
 Python **3.11 or 3.12** and a recent browser are required. Node.js is only needed for the browser-audio tests. The prepared demo bundle is included; no external model download, avatar app, account or API key is needed.
 
 ```bash

@@ -23,7 +23,7 @@ This alpha is an R&D handoff. Further model development is deferred.
 - A general non-backpropagation learning solution, strict clean-room provenance or Kokoro-level new-speech quality.
 - A JaegerOS module/slot adapter or installable production inference API (planned).
 
-CI uses a Linux runner; the initially inherited macOS runner configuration was rejected by GitHub before any test steps. Local validation was performed on Apple Silicon.
+**macOS is a core supported platform.** Local validation passed on macOS 26.6.2 / Apple Silicon. CI now covers `macos-26` ARM64 and Linux independently with fail-fast disabled. The earlier `macos-14` configuration was rejected by GitHub; that runner configuration issue did not remove Mac application support. Intel Mac compatibility remains unverified.
 
 ## Validation
 

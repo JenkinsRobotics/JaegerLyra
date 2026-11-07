@@ -1,0 +1,4 @@
+-r requirements-demo-lock.txt
+# Optional normalized-lattice implementation exercised by the full research suite.
+numba==0.68.1
+llvmlite==0.50.0

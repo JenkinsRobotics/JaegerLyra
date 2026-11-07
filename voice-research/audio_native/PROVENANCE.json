@@ -1,0 +1,3567 @@
+{
+  "scope": "Research-only DSP and trained neural reconstruction/local-learning modules; not a completed independent speech model or a strict clean-room implementation",
+  "implementation": "New project code implements classical DSP, PCA/continuous controls, a two-layer neural waveform decoder and explicit local energy updates. No third-party neural model code or weights are incorporated in these modules; neural training audio is produced by existing Kokoro weights.",
+  "primaryReferences": [
+    "https://dsprelated.com/freebooks/pasp/Voice_Synthesis.html",
+    "https://www.dsprelated.com/freebooks/SASP/Applications_STFT.html",
+    "https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC5467749/",
+    "https://www.isca-archive.org/ssw_1998/stylianou98_ssw.pdf",
+    "https://arxiv.org/abs/2306.17252",
+    "https://arxiv.org/abs/2409.14823",
+    "https://www.dsprelated.com/freebooks/filters/Step_Down_Procedure.html",
+    "https://www.dsprelated.com/freebooks/pasp/Normalized_Scattering_Junctions.html",
+    "https://magenta.tensorflow.org/ddsp",
+    "https://arxiv.org/abs/1904.12088",
+    "https://www.fon.hum.uva.nl/praat/manual/overlap-add.html",
+    "https://courses.physics.illinois.edu/ece420/fa2021/5_PSOLA.pdf",
+    "https://www.isca-archive.org/interspeech_2005/ezzat05_interspeech.html"
+  ],
+  "runtime": {
+    "python": "3.11.9",
+    "numpy": "1.26.4",
+    "scipy": "1.17.1",
+    "machine": "arm64",
+    "numba": "0.68.1 (optional normalized-lattice synthesis only)"
+  },
+  "dependencies": "NumPy/SciPy numerical primitives; optional Numba for scattering synthesis; SoundFile artifacts. Praat/Parselmouth performs offline pulse compilation and evaluation. WORLD/pyworld also supplies an explicitly external offline vocal-shape synthesis reference; speechbrain and local Whisper remain evaluators.",
+  "fixtures": "Original sentences synthesized by existing Kokoro weights. Initial predictor weights fit only the two original synthetic reference clips; evaluation adaptation is labelled and delayed until observation. Not a clean-room speech corpus.",
+  "globalBackpropagation": false,
+  "localEnergyGradients": true,
+  "usesTextInSignalPath": false,
+  "discreteAudioCodebook": false,
+  "compression": false,
+  "residualPolicy": {
+    "fidelityBaseline": "Original continuous residual retained; all ten measured clips PCM16 exact",
+    "generatedExcitation": "Decoder only sees continuous controls and optionally PCA source coordinates; original residual is unavailable",
+    "coordinateOrigin": "Encoded from existing input audio, not independently generated linguistic content"
+  },
+  "additionalMethods": "Classical harmonic/noise oscillator, running reference harmonic statistics, and continuous PCA source coordinates; no codebook or global backpropagation.",
+  "acceptance": "Generated excitation is lossy; naturalness and identity unaccepted. Existing Kokoro remains default.",
+  "currentResearchConfiguration": {
+    "harmonics": 64,
+    "filterOrder": 32,
+    "sourceCoordinates": 48,
+    "fit": "PCA source model fits original synthetic references and stays frozen; explicitly labelled local predictors may adapt only from observed audio.",
+    "latency": "15 ms lookahead, 25 ms ideal first-frame input buffering; sound device latency unmeasured",
+    "independentContentGeneration": false,
+    "lpcVersion": "2-unclipped-levinson"
+  },
+  "streamingInterface": "voicebox_stream.ReferenceVoicebox: from_reference, push, finish, cancel. Target is processed incrementally; raw floats need caller playback gain/limiting.",
+  "comparisonLimits": "Offline Praat oracle and speaker embeddings are evaluation-only; source-ceiling diagnostic is distinct from the runtime stream. Source descriptors and controls are still inferred from observed speech.",
+  "freeRunningControls": {
+    "module": "predictive_controls.py",
+    "features": 84,
+    "historyMs": 550,
+    "methods": [
+      "Recursive one-step local PC/NLMS",
+      "Direct multi-horizon local PC/NLMS",
+      "Holding observed controls"
+    ],
+    "horizonFrames": [
+      1,
+      2,
+      3,
+      5,
+      8,
+      13,
+      21,
+      34,
+      55
+    ],
+    "targetGapMs": [
+      100,
+      250,
+      500
+    ],
+    "contextLeakageTest": "Mutation of withheld PCM leaves every admitted analysis frame unchanged",
+    "trainOnMissingTarget": false,
+    "synthesisSeesOriginalResidual": false,
+    "languageGeneration": false,
+    "training": "Original two synthetic Kokoro references; adaptive variants may learn from observed evaluation audio only",
+    "evidence": "evidence/free-running-controls/summary.json",
+    "acceptance": "Not promoted; audio quality is inconsistent and longer gaps lose words"
+  },
+  "energyControl": {
+    "module": "vocal_energy.py",
+    "method": "Stationary harmonic/noise output-power estimate coupled to resonance; desired RMS is a continuous control",
+    "limitation": "Steady-state power is not a time-varying peak guarantee; direct-filter gap runs exposed four clipping failures",
+    "evidence": "evidence/vocal-energy/summary.json",
+    "accepted": false
+  },
+  "normalizedLattice": {
+    "module": "lattice_filter.py",
+    "method": "Classical normalized scattering rotations; normalized source-gain interpolation",
+    "sourceCodeCopied": false,
+    "defaultFilterChanged": false,
+    "zeroInputProperty": "Stored state energy cannot increase solely from changing reflection coefficients; tested energy balance at sample resolution",
+    "scopeLimit": "Does not guarantee bounded playback amplitude under arbitrary input, naturalness, independent content or biological learning",
+    "verification": "Fixed-filter equivalence, chunk continuity, time-varying energy balance, zero-input energy, voicebox equivalence and invalid-state rejection",
+    "evidence": "evidence/vocal-energy/normalized-lattice/summary.json",
+    "pcCasesWithinGuards": 144,
+    "remainingFailures": 2,
+    "accepted": false
+  },
+  "legacyCompatibility": "Earlier measurements and saved source/predictor weights used LPC v1. Refit profiles for v2; archived implementation is legacy_lpc_v1.py.",
+  "noiseColor": {
+    "module": "noise_shape.py",
+    "bands": 8,
+    "firTaps": 64,
+    "waveformSamplesInDecoder": false,
+    "accepted": false
+  },
+  "humanEvaluation": {
+    "manifest": "evidence/source-detail/human-inputs/manifest.json",
+    "license": "CC BY 4.0",
+    "usedForTraining": false
+  },
+  "latestSummary": "evidence/live-voicebox/voice-character-v3/summary.json",
+  "neuralWaveform": {
+    "module": "neural_waveform.py",
+    "trainingManifest": "evidence/neural-waveform/training-inputs/manifest.json",
+    "trainingClips": 24,
+    "trainingSeconds": 92.1,
+    "teacher": "Kokoro Heart and Michael synthetic speech",
+    "independentTrainingCorpus": false,
+    "cleanRoomWeights": false,
+    "decoderInputs": "256 continuous target-encoded acoustic coordinates plus gain, every 10 ms; output duration",
+    "decoderOriginalPcmOrResidual": false,
+    "phoneticOrIdentityDisentanglement": false,
+    "initialization": "Batch PCA encoding and random tanh features with least-squares output fitting",
+    "refinement": "One chronological local PC pass; no autograd/global backpropagation; mixed evaluation results",
+    "biologicalLearningClaim": false,
+    "compressed": false,
+    "independentContentGeneration": false,
+    "acceptedQuality": false,
+    "summary": "evidence/neural-waveform/d256-h768/summary.json"
+  },
+  "neuralOutputCandidate": {
+    "module": "neural_waveform.initialize_axis_decoder",
+    "scope": "Output reconstruction only; input development deferred",
+    "controlsPerFrame": 385,
+    "frameHopMs": 10,
+    "decoderPcmBypass": false,
+    "source": "20 synthetic Kokoro training clips, 4 development clips, 9 fresh evaluation clips",
+    "hiddenFeatures": "Coordinate-specific tanh units, batch fitted output layer",
+    "globalBackpropagation": false,
+    "localPcRefinement": false,
+    "independentTrainingProvenance": false,
+    "cleanRoomWeights": false,
+    "listeningAccepted": false,
+    "streaming": "neural_output_stream.NeuralOutputStream",
+    "summary": "evidence/neural-waveform/axis-v1/summary.json"
+  },
+  "outputDetailRefinement": {
+    "module": "develop_output_detail.py",
+    "encoderChanged": false,
+    "trainingTargets": "Projection into the same teacher-fitted acoustic subspace; output-only loss ablation",
+    "weightsChanged": true,
+    "controlsPerFrame": 385,
+    "globalBackpropagation": false,
+    "localPcRefinement": false,
+    "independentTrainingProvenance": false,
+    "newSpeechOrSingingGeneration": false,
+    "listeningAccepted": false,
+    "summary": "evidence/neural-waveform/axis-detail-v2/summary.json"
+  },
+  "performanceControls": {
+    "module": "neural_performance.py",
+    "rendererVersion": 2,
+    "algorithm": "Classical pitch-synchronous overlap/add; new project renderer code, with offline Praat pulse analysis",
+    "reference": "https://uvafon.hum.uva.nl/praat/manual/overlap-add.html",
+    "analysisDependency": {
+      "package": "praat-parselmouth",
+      "version": "0.4.6",
+      "license": "GPLv3",
+      "role": "Offline pulse analysis during source performance compilation"
+    },
+    "originalPcmFieldInArtifact": false,
+    "capturedArticulation": true,
+    "independentNewWords": false,
+    "shortReferenceClone": false,
+    "controllerStreaming": true,
+    "frozenNeuralWeights": true,
+    "acceptedQuality": false,
+    "summary": "evidence/neural-performance/v2/summary.json",
+    "controllerStreamingScope": "Incremental PCM from a complete prepared control score; no growing score, live text or live control changes"
+  },
+  "performanceStreaming": {
+    "module": "neural_performance_stream.py",
+    "modelSha256": "ac2debf521a0936a2ee9b7c9cb5cac86d550612de78a7d57233363b28b58a510",
+    "summary": "evidence/neural-performance/streaming-v1/summary.json",
+    "offlineReference": "neural_performance.py renderer v2",
+    "retainedDecodedSampleLimit": 7680,
+    "fullControlScoreResident": true,
+    "sourcePcmRequiredAtRuntime": false,
+    "frozenNeuralWeights": true,
+    "acceptedQuality": false,
+    "synchronousCancellationOnly": true
+  },
+  "vowelInstrument": {
+    "module": "neural_vowel_instrument.py",
+    "approach": "Sample-based captured voiced grains decoded by the frozen neural model; classical overlap/add with a new authored pulse schedule",
+    "source": "Nine synthetic Kokoro prompts, three intended vowels across Heart/Michael/Bella",
+    "sourceDurationSeconds": [
+      0.07825,
+      0.164625
+    ],
+    "modelSha256": "ac2debf521a0936a2ee9b7c9cb5cac86d550612de78a7d57233363b28b58a510",
+    "runtimeRequiresOriginalPcm": false,
+    "runtimeRequiresTargetRecording": false,
+    "encodedCapturedTimbreRequired": true,
+    "learnedArticulatoryControls": false,
+    "phoneticLabelsVerified": false,
+    "independentNewWords": false,
+    "shortReferenceGeneralClone": false,
+    "acceptedQuality": false,
+    "summary": "evidence/neural-vowels/v1/summary.json"
+  },
+  "vocalShapeTransitions": {
+    "module": "vocal_shape_control.py",
+    "scope": "Continuous captured-vowel control paths; direct neural-grain crossfade and external WORLD spectral interpolation comparison",
+    "shapeDescriptors": "Median log spectral envelope and aperiodicity from short neural-decoded captured vowel patches",
+    "worldRole": "Explicit offline external comparator, not the independent neural generator",
+    "pyworldVersion": "0.3.5",
+    "licenseRecord": "licenses/vocal-shape-reference.json",
+    "neuralWeightsChanged": false,
+    "newPretrainedWeights": false,
+    "streamingWorldSynthesis": false,
+    "learnedArticulation": false,
+    "acceptedQuality": false,
+    "summary": "evidence/vocal-shapes/v1/summary.json"
+  },
+  "outputCapacityStudy": {
+    "module": "develop_output_capacity.py",
+    "summary": "evidence/neural-waveform/capacity-v3/summary.json",
+    "source": "Same 20 synthetic Kokoro training clips and four development clips; six configurations retained",
+    "selected": "448 coordinates, seven tanh features per coordinate, ridge 1e-7",
+    "globalBackpropagation": false,
+    "localPredictiveCodingImprovement": false,
+    "cleanRoomWeights": false,
+    "generalReplacementAccepted": false
+  },
+  "compiledNeuralInference": {
+    "module": "compiled_neural_decoder.py",
+    "scope": "Exact evaluation of eligible single-coordinate hidden units; unchanged frozen W/V weights, no pruning or fitting",
+    "report": "evidence/neural-waveform/capacity-v3/compiled-streaming/report.json"
+  },
+  "bandPreservingOutput": {
+    "module": "band_preserving_decoder.py",
+    "summary": "evidence/neural-waveform/band-v4/summary.json",
+    "candidate": "evidence/neural-waveform/band-v4/decoder.json",
+    "candidateSha256": "3800d7db070e4947f5c19269eccca55b2f0f1f90375f558203668340b531b8ee",
+    "completedCases": 87,
+    "speech": {
+      "kind": "fresh-kokoro",
+      "mode": "band-preserving-v4",
+      "cases": 9,
+      "executionFailures": 0,
+      "meanWaveformSnrDb": 37.03891564515034,
+      "meanSpectralErrorDb": 0.5259452090178789,
+      "meanIdentityCosine": 0.8382929431067573,
+      "meanDecoderRealTimeFactor": 0.05211170483984374,
+      "wordErrors": 0,
+      "originalWordErrors": 0,
+      "originalMeanIdentity": 0.8417550921440125,
+      "normalizedTranscriptChanges": 0
+    },
+    "streaming": {
+      "cases": 15,
+      "maximumDifferenceFromBatch": 1.1102230246251565e-16,
+      "maximumFrameMsP95": 0.6715730298310518,
+      "maximumSingleFrameMs": 0.8209999650716782,
+      "medianFirstOutputComputeMs": 1.1694999411702156,
+      "maximumComputeRealTimeFactor": 0.05744963432150769,
+      "additionalFirLookaheadMs": 2.6666666666666665,
+      "retainedWaveformStateLimitSamples": 672,
+      "stateScope": "Two 240-sample neural overlap tails, 128 FIR state samples, at most 64 pending base samples; excludes weights, input controls and temporary arrays",
+      "timingScope": "Warm resident compiled model branches and precomputed controls; excludes loading, compilation, control generation, live text, devices and transport",
+      "allCancellationChecksPassed": true,
+      "weightsUnchanged": true
+    },
+    "compiledInference": {
+      "structured-v2": {
+        "cases": 12,
+        "medianPairedSpeedup": 1.7702845086632077,
+        "maximumDifferenceFromDenseBatch": 0.0,
+        "maximumCompiledFrameMsP95": 0.24580173194408392
+      },
+      "capacity-v3": {
+        "cases": 12,
+        "medianPairedSpeedup": 1.828069654908721,
+        "maximumDifferenceFromDenseBatch": 0.0,
+        "maximumCompiledFrameMsP95": 0.37679262459278107
+      }
+    },
+    "controlCost": {
+      "priorScalarsPerSecond": 38500,
+      "newScalarsPerSecond": 44900,
+      "sourcePcmSamplesPerSecond": 24000,
+      "compressionClaim": false,
+      "compactPhoneticControls": false
+    },
+    "recognitionChanges": [
+      {
+        "fixture": "fresh-af_heart-new-song",
+        "mode": "band-preserving-v4",
+        "text": "Dil over clouds are drifting softly, babe.",
+        "originalText": "Dilver clouds are drifting softly, babe."
+      }
+    ],
+    "limitations": [
+      "The neural decoders consume dense target-derived controls; no independent new words, notes or short-reference cloning is demonstrated by this fidelity panel.",
+      "Both branches use the same 20 synthetic Kokoro training clips; source-derived teacher weights are not clean-room provenance.",
+      "No global backpropagation is used; output layers are batch fitted, without a local predictive-coding improvement claim.",
+      "The prior SoulX lyric regression is removed, but a fresh score-adapter song has one normalized ASR change on an already misrecognized source phrase.",
+      "Singing reconstruction preserves an existing performance; source singing naturalness/identity are not thereby improved.",
+      "Objective fidelity gains and faster computation do not establish Kokoro-level perceptual acceptance.",
+      "The composition retains two neural networks; its input representation has higher bandwidth and is not a compact voice/phoneme model."
+    ],
+    "listeningAccepted": false,
+    "linearReferenceCaveat": "Linear reference is both more accurate and faster on this reconstruction panel; neural reconstruction does not establish compact vocal control or new content generation.",
+    "runtimeInputs": "Dense target-derived controls, two frozen decoders, 129-tap FIR; no original PCM or encoder basis at runtime",
+    "source": "Both neural branches use Kokoro-derived training data; not an independently trained or clean-room voice engine",
+    "assembly": {
+      "type": "band-preserving-neural",
+      "version": 1,
+      "base": {
+        "file": "evidence/neural-waveform/axis-detail-v2/projected-r1e-7.npz",
+        "sha256": "ac2debf521a0936a2ee9b7c9cb5cac86d550612de78a7d57233363b28b58a510"
+      },
+      "detail": {
+        "file": "evidence/neural-waveform/capacity-v3/d448-k7-r1e-7.npz",
+        "sha256": "a4a9807a14a7fc7403a9bd48e7966bf39b0e9529cedf921b503388b1dce24922"
+      },
+      "cutoffHz": 8000.0,
+      "taps": 129,
+      "window": "Kaiser beta 8.0",
+      "designOrigin": "Add the richer decoder only above the 8 kHz boundary identified by the earlier error audit; motivated by capacity-v3 low-band/lyric regressions",
+      "scope": "Two frozen target-control waveform decoders with a complementary FIR; no novel speech, compact articulator code or independent model provenance",
+      "additionalFirDelaySamples": 64,
+      "controlScalarsPerSecond": 44900
+    }
+  },
+  "compactVocalInstrument": {
+    "module": "compact_vocal_instrument.py",
+    "summary": "evidence/compact-vocal/v1/summary.json",
+    "method": "Project harmonic-plus-noise synthesizer; neural decoder and external WORLD used only for offline profile capture; not a new neural vocoder",
+    "algorithmReference": "https://magenta.tensorflow.org/ddsp",
+    "upstreamCodeCopied": false,
+    "runtimeDependencies": [
+      "NumPy",
+      "SciPy"
+    ],
+    "capture": "Earlier frozen neural-decoded synthetic Kokoro patches; external WORLD spectral/aperiodicity analysis; fixed 96 cepstral + 8 noise + 1 RMS values per vowel",
+    "neuralRuntime": false,
+    "newNeuralWeightsTrained": false,
+    "cleanRoomVoiceModel": false,
+    "globalBackpropagation": false,
+    "localPredictiveLearning": false,
+    "inputUnderstandingDeveloped": false,
+    "fullTargetRecordingAtRuntime": false,
+    "futureScoreRequired": false,
+    "tests": {
+      "passed": 107,
+      "log": "evidence/audio-native-compact-tests.txt"
+    },
+    "listeningAccepted": false
+  },
+  "capturedHarmonicTexture": {
+    "module": "captured_harmonic_voice.py",
+    "summary": "evidence/captured-harmonic/v1/summary.json",
+    "algorithmReference": "https://www.ee.columbia.edu/~dpwe/e6820/papers/Styl01-hnm.pdf",
+    "upstreamCodeCopied": false,
+    "method": "Fixed sinusoidal features, even-cycle least-squares fitting, captured harmonic amplitude and residual-phase interpolation",
+    "source": "Nine earlier synthetic Kokoro vowel patches decoded with frozen v2 neural model; compact WORLD-derived noise/envelope reference unchanged",
+    "newNeuralWeightsTrained": false,
+    "globalBackpropagation": false,
+    "localPredictiveLearning": false,
+    "cleanRoomVoiceModel": false,
+    "oddCyclesUsedForFitting": false,
+    "neuralRuntime": false,
+    "qualityReplacementAccepted": false,
+    "listeningAccepted": false,
+    "dynamicsDiagnostic": {
+      "file": "evidence/captured-harmonic/v1/dynamics-diagnostic.json",
+      "offlineFutureSourceAccess": true,
+      "generatedVariation": false
+    },
+    "tests": {
+      "passed": 112,
+      "log": "evidence/audio-native-harmonic-tests.txt"
+    }
+  },
+  "autonomousTexture": {
+    "module": "generated_vocal_texture.py",
+    "fitModule": "fit_generated_vocal_texture.py",
+    "summary": "evidence/generated-texture/v1/summary.json",
+    "sourceManifest": "evidence/generated-texture/references/manifest.json",
+    "method": "Three-dimensional PCA and ridge-fitted bounded linear transition, with stationary-covariance-calibrated Gaussian innovations; modulation of compact harmonic strengths",
+    "source": "30.85 seconds of new synthetic Kokoro repeated-vowel references, reconstructed by frozen v2 neural decoder before offline analysis",
+    "runtime": "Captured compact profiles and learned statistical parameters; fresh independent RNG innovations, no recorded trajectory, PCM, pulse timings or future target audio",
+    "neuralRuntime": false,
+    "newNeuralWeightsTrained": false,
+    "globalBackpropagation": false,
+    "localPredictiveCoding": false,
+    "cleanRoomVoiceModel": false,
+    "qualityReplacementAccepted": false,
+    "listeningAccepted": false,
+    "tests": {
+      "passed": 117,
+      "log": "evidence/audio-native-texture-tests.txt"
+    },
+    "validation": "Complete source segments held out with no analysis-support overlap; all short/quiet exclusions recorded"
+  },
+  "pulseBasis": {
+    "module": "pulse_basis_instrument.py",
+    "fitModule": "fit_pulse_basis.py",
+    "benchmarkModule": "benchmark_pulse_basis.py",
+    "summary": "evidence/pulse-basis/v1/summary.json",
+    "sourceManifest": "evidence/generated-texture/references/manifest.json",
+    "method": "Captured waveform mean plus eight PCA directions, bounded ridge-fitted transition and calibrated Gaussian innovations; causal overlap/add at commanded pulse times",
+    "source": "Nine Kokoro repeated-vowel recordings; frozen v2 neural reconstruction before capture; complete source segments held out with decoder-support guards",
+    "runtime": "Captured waveform templates, generated pulse coefficients and immediate pitch/vowel/gain controls; no recorded pulse sequence or future target waveform",
+    "capturedWaveformTemplates": true,
+    "neuralRuntime": false,
+    "newNeuralWeightsTrained": false,
+    "globalBackpropagation": false,
+    "localPredictiveCoding": false,
+    "cleanRoomVoiceModel": false,
+    "fixedWaveformDelayMs": 20,
+    "controlPacketMs": 5,
+    "additionalBreathControl": false,
+    "qualityReplacementAccepted": false,
+    "listeningAccepted": false,
+    "tests": {
+      "passed": 122,
+      "log": "evidence/audio-native-pulse-tests.txt"
+    },
+    "decision": "Do not adopt pulse-basis variation as the quality default. A representation that reconstructs captured pulses is not enough: generated coefficients also need coherent excitation and accurate pitch. Inspect phase alignment and timing before expanding articulation."
+  },
+  "phaseCanonicalPulse": {
+    "module": "coherent_pulse_basis.py",
+    "report": "evidence/pulse-basis/coherent-v2/report.json",
+    "periodizationOnlyReport": "evidence/pulse-basis/periodic-only-v2/report.json",
+    "diagnostic": "evidence/pulse-basis/v1/alignment-diagnostic.json",
+    "newCases": 195,
+    "method": "Central-cycle extraction, source-band restriction and canonical fundamental phase; same frozen pulse banks and random state sequences",
+    "neuralRuntime": false,
+    "newNeuralWeightsTrained": false,
+    "qualityReplacementAccepted": false,
+    "decision": "Rejected: phase correction does not improve on periodization alone for spectrum matching and introduces a held-note pitch-tracker octave error."
+  },
+  "liveNeuralGrains": {
+    "module": "live_neural_grains.py",
+    "benchmark": "benchmark_live_neural_grains.py",
+    "summary": "evidence/live-neural-grains/v1/summary.json",
+    "sourceReport": "evidence/neural-vowels/v1/report.json",
+    "decoderSha256": "ac2debf521a0936a2ee9b7c9cb5cac86d550612de78a7d57233363b28b58a510",
+    "runtime": "Immediate 5 ms frames; frozen compiled neural waveform decoder with bounded lazy window caches; captured short-patch pulse microvariation reused",
+    "futureScoreRequired": false,
+    "growingEventList": false,
+    "fixedWaveformDelayMs": 20,
+    "neuralRuntime": true,
+    "newNeuralWeightsTrained": false,
+    "globalBackpropagation": false,
+    "localPredictiveCoding": false,
+    "cleanRoomVoiceModel": false,
+    "additionalBreathControl": false,
+    "qualityReplacementAccepted": false,
+    "listeningAccepted": false,
+    "tests": {
+      "passed": 129,
+      "log": "evidence/audio-native-live-grain-tests.txt"
+    }
+  },
+  "capturedArticulation": {
+    "module": "neural_articulation.py",
+    "captureModule": "compile_articulation_units.py",
+    "summary": "evidence/neural-articulation/v1/summary.json",
+    "sourceManifest": "evidence/neural-articulation/references/manifest.json",
+    "modelSha256": "ac2debf521a0936a2ee9b7c9cb5cac86d550612de78a7d57233363b28b58a510",
+    "source": "Nine fresh synthetic Kokoro words, with source-only quiet-edge trimming and late voiced-region selection",
+    "runtime": "Frozen neural waveform decoder, recorded source voicing/pulse metadata and immediate 5 ms controls; captured onset and repeated nucleus",
+    "neuralRuntime": true,
+    "newNeuralWeightsTrained": false,
+    "globalBackpropagation": false,
+    "localPredictiveCoding": false,
+    "usesTextAtRuntime": false,
+    "usesDiscreteAudioCodebook": false,
+    "sourceCaptureUsesTextTeacher": true,
+    "futurePerformanceScoreRequired": false,
+    "fixedWaveformDelayMs": 20,
+    "liveUnitSwitching": false,
+    "cleanRoomVoiceModel": false,
+    "generalPronunciationModel": false,
+    "qualityReplacementAccepted": false,
+    "listeningAccepted": false,
+    "tests": {
+      "passed": 134,
+      "log": "evidence/audio-native-articulation-tests.txt"
+    },
+    "lexicalDiagnostic": "Original words match intended sound class in 6/9 ASR cases; controlled neutral short/long words match 4/9. No pronunciation parity."
+  },
+  "fixedCycleSustain": {
+    "summary": "evidence/neural-articulation/stationarity-v1/summary.json",
+    "source": "voice-research/audio_native/neural_articulation.py",
+    "selection": "Source-only spectral stationarity inside original pitch/energy eligibility and explicit short-condition sustain bound. Not phoneme recognition.",
+    "training": "No new neural weights. Existing frozen neural decoder, source pulse analysis and captured synthetic units.",
+    "continuousControls": "Immediate 5 ms pitch and gain; no runtime text or future score. Fixed 20 ms waveform delay.",
+    "generalization": "Same nine development sources; fresh-source validation remains required.",
+    "pretrainedComparator": "Existing attributed kokoro_singing.py adapter, offline pretrained Kokoro duration/pitch adaptation. Failed voicing/word checks; not a valid normal-Kokoro quality baseline.",
+    "defaultChanged": false,
+    "listeningAccepted": false,
+    "cleanRoomImplementation": false
+  },
+  "freshSustainValidation": {
+    "summary": "evidence/neural-articulation/fresh-sustain-v1/combined-summary.json",
+    "protocol": "evidence/neural-articulation/fresh-sustain-v1/protocol.json",
+    "sources": "18 fresh synthetic Kokoro recordings; same three voices, six new unit words.",
+    "frozenCoverage": "14/18 sources captured; all four failures counted.",
+    "comparison": "Same controller with frozen neural window decoder versus explicit lossless original-waveform frames. PCM reference is not an independent generator.",
+    "result": "Fixed-cycle ASR gain did not generalize. Single-word ASR also changes after quiet-edge trimming; no listening or identity acceptance.",
+    "neuralTraining": "No new neural weights or independent pronunciation model.",
+    "defaultChanged": false
+  },
+  "variableSpanCapture": {
+    "source": "voice-research/audio_native/variable_span_capture.py",
+    "report": "evidence/neural-articulation/variable-span-v1/summary.json",
+    "scope": "Post-validation development on four previously failed sources; all four recovered.",
+    "change": "Search source span endpoints as well as starts while retaining period-ratio, energy, pulse-count and 60\u2013150 ms bounds.",
+    "learnedPhonemes": false,
+    "freshValidation": false,
+    "cleanRoomImplementation": false,
+    "defaultChanged": false
+  },
+  "pretrainedControlVoicebox": {
+    "scope": "Pretrained Kokoro per-utterance normalization-statistic ablation; no independent model or new training",
+    "summary": "evidence/kokoro-control-voicebox/reference-norm-v2/summary.json",
+    "ordinaryControlReplay": {
+      "cases": 9,
+      "maximumDifference": 8.195638656616211e-08,
+      "vowelF0Above55FractionRange": [
+        0.375,
+        0.5
+      ]
+    },
+    "nativeNormalizationParity": {
+      "cases": 9,
+      "maximumDifference": 8.940696716308594e-08,
+      "normalizationModulesPerSource": [
+        58
+      ],
+      "statisticScalarsPerSource": [
+        37396
+      ]
+    },
+    "savedStateReplay": {
+      "cases": 36,
+      "maximumDifference": 8.940696716308594e-08,
+      "scope": "Replay all edited clips from saved acoustic controls and saved normalization statistics, without original speech-model inference",
+      "report": "evidence/kokoro-control-voicebox/reference-norm-v2/saved-state-replay.json"
+    },
+    "controlledNewRenders": 72,
+    "comparativeCases": 108,
+    "revisedInterior": {
+      "cases": 18,
+      "minimumPraatVoicedFraction": 1.0,
+      "minimumWorldVoicedFraction": 1.0,
+      "medianRawHeldRmsBefore": 0.008077544815525226,
+      "medianRawHeldRmsAfter": 0.032785656477259,
+      "medianPairedHeldRmsChangeDb": 16.68191172582238,
+      "octaveDisagreements": [
+        {
+          "name": "am_michael-bee-native-interior-hold-reference-norm",
+          "praatP95Cents": 1218.8937618922093,
+          "worldP95Cents": 17.27601266019031,
+          "file": "evidence/kokoro-control-voicebox/reference-norm-v2/am_michael-bee-native-interior-hold-reference-norm.wav"
+        },
+        {
+          "name": "af_bella-see-native-interior-hold-reference-norm",
+          "praatP95Cents": 1214.8679315114357,
+          "worldP95Cents": 20.97868407447183,
+          "file": "evidence/kokoro-control-voicebox/reference-norm-v2/af_bella-see-native-interior-hold-reference-norm.wav"
+        }
+      ],
+      "worstWorldPerCaseP95Cents": 24.84057060042607,
+      "homophoneEquivalentMatches": 7,
+      "previousInteriorHomophoneEquivalentMatches": 6
+    },
+    "offlineDecoderTiming": {
+      "referenceNormCases": 36,
+      "medianWholeClipComputeMs": 74.64147917926311,
+      "maximumWholeClipComputeMs": 114.98349998146296,
+      "clipSeconds": 2.5,
+      "scope": "Resident pretrained model and prepared controls/source statistics; includes reference normalization hook and whole-clip decoder evaluation. Excludes loading, source-stat capture, control preparation, transport and devices. Not first-packet or streaming latency."
+    },
+    "auditions": {
+      "page": "http://127.0.0.1:8791/voicebox-control-lab.html",
+      "manifest": "public/research/control-sustain/manifest.json",
+      "files": 117,
+      "groups": 18,
+      "plots": 18,
+      "maximumMeasuredLevelErrorLu": 1.0714636644593156e-07,
+      "noAutoplay": true,
+      "listeningAccepted": false
+    },
+    "browserQa": "evidence/kokoro-control-voicebox/reference-norm-v2/listening-room-qa.json",
+    "tests": {
+      "research": 143,
+      "researchLog": "evidence/audio-native-kokoro-control-tests.txt",
+      "mlxHook": 3,
+      "mlxHookLog": "evidence/kokoro-normalization-hook-tests.txt"
+    },
+    "decision": "Retain the revised pretrained reference for listening and fresh-source validation. Interior-state holding and source normalization together yield fully tracked voiced sustains, but two octave disagreements and weak single-word ASR remain. This does not establish naturalness, identity or independent-engine parity.",
+    "nextExperiment": "Freeze the control-hold and normalization rules, test new vowels and source words, then evaluate whether these more stationary teacher references improve the independent waveform instrument. Keep pretrained synthesis, independent reconstruction and later control learning separate. Input understanding remains deferred.",
+    "limitations": [
+      "All methods use the same requested duration/pitch and common interior analysis interval, but their onset/release timing differs.",
+      "New Kokoro controls are rendered as raw float WAVs; legacy references contain prior app filtering/level normalization. ASR is diagnostic, not a blinded quality test.",
+      "Single-word and sustained-tone ASR is unstable, including on original Kokoro audio.",
+      "No listening acceptance, general identity transfer or independent neural training is demonstrated.",
+      "Statistics come from each complete normal source utterance, not a generalized speaker embedding.",
+      "Only normalization statistics change relative to the prior control edits; captured controls and neural weights are unchanged.",
+      "This is offline full-clip decoding, not causal streaming or general reference cloning.",
+      "All hooks are restored in an isolated process; the app worker and installed source files are unchanged.",
+      "This is a source-derived adaptation of a pretrained model, not clean-room code or new neural speech-model training.",
+      "Normalization statistics depend on a complete source utterance and occupy 37,396 scalars per source; not a compact universal voice identity.",
+      "N is treated as an opaque acoustic control; it is not asserted to be a physical vocal-tract parameter.",
+      "No semantic audio input, general voice cloning, causal streaming or listener acceptance is demonstrated by this study."
+    ],
+    "completionProven": false,
+    "appDefaultChanged": false,
+    "listeningAccepted": false
+  },
+  "freshPretrainedVowels": {
+    "scope": "Frozen fresh-vowel validation followed by a development ablation of the held pretrained feature stage",
+    "freshProtocol": "evidence/kokoro-control-voicebox/fresh-vowels-v1/protocol.json",
+    "ablationProtocol": "evidence/kokoro-control-voicebox/generator-hold-v1/protocol.json",
+    "freshSources": 18,
+    "freshSourceCaptureFailures": [],
+    "newControlledRenders": 144,
+    "newLocalAsrEvaluations": 162,
+    "sourceAsrResultsReusedInAblation": 18,
+    "ordinarySourceWordMatches": 11,
+    "nativeReplayMaximumDifference": 1.043081283569336e-07,
+    "groups": [
+      {
+        "heldFeatureStage": "upstream-control",
+        "normalization": "normal",
+        "cases": 36,
+        "bothPitchChecksPassed": 15,
+        "praatVoicedAtLeast95Percent": 15,
+        "worldVoicedAtLeast95Percent": 35,
+        "homophoneEquivalentMatches": 10,
+        "overFullScaleSamples": 0,
+        "maximumRawPeak": 0.7873484492301941,
+        "medianHeldRms": 0.0069511591097484865,
+        "p95TrackerDisagreementsAbove600Cents": [
+          {
+            "name": "am_michael-blue-native-normal",
+            "praat": 844.0554662660959,
+            "world": 18.193816139166742
+          }
+        ]
+      },
+      {
+        "heldFeatureStage": "upstream-control",
+        "normalization": "reference",
+        "cases": 36,
+        "bothPitchChecksPassed": 12,
+        "praatVoicedAtLeast95Percent": 21,
+        "worldVoicedAtLeast95Percent": 27,
+        "homophoneEquivalentMatches": 11,
+        "overFullScaleSamples": 6,
+        "maximumRawPeak": 1.0718408823013306,
+        "medianHeldRms": 0.025259827278971792,
+        "p95TrackerDisagreementsAbove600Cents": [
+          {
+            "name": "am_michael-palm-native-reference",
+            "praat": 1211.8849833265501,
+            "world": 12.4388895888817
+          },
+          {
+            "name": "am_michael-blue-native-reference",
+            "praat": 1230.745322174182,
+            "world": 47.46069395555814
+          },
+          {
+            "name": "am_michael-blue-melody-reference",
+            "praat": 1928.3427273260925,
+            "world": 45.29501668036336
+          }
+        ]
+      },
+      {
+        "heldFeatureStage": "generator-input",
+        "normalization": "normal",
+        "cases": 36,
+        "bothPitchChecksPassed": 22,
+        "praatVoicedAtLeast95Percent": 24,
+        "worldVoicedAtLeast95Percent": 36,
+        "homophoneEquivalentMatches": 9,
+        "overFullScaleSamples": 0,
+        "maximumRawPeak": 0.634734034538269,
+        "medianHeldRms": 0.009762837486698251,
+        "p95TrackerDisagreementsAbove600Cents": [
+          {
+            "name": "af_heart-raw-native-generator-normal",
+            "praat": 1907.7137817759613,
+            "world": 9.086615353840104
+          },
+          {
+            "name": "af_heart-raw-melody-generator-normal",
+            "praat": 1906.4643095376005,
+            "world": 29.041053431782025
+          }
+        ]
+      },
+      {
+        "heldFeatureStage": "generator-input",
+        "normalization": "reference",
+        "cases": 36,
+        "bothPitchChecksPassed": 19,
+        "praatVoicedAtLeast95Percent": 36,
+        "worldVoicedAtLeast95Percent": 35,
+        "homophoneEquivalentMatches": 18,
+        "overFullScaleSamples": 0,
+        "maximumRawPeak": 0.48004844784736633,
+        "medianHeldRms": 0.047244399268475123,
+        "p95TrackerDisagreementsAbove600Cents": [
+          {
+            "name": "af_heart-raw-native-generator-reference",
+            "praat": 1904.9205562712066,
+            "world": 20.171065315501618
+          },
+          {
+            "name": "af_heart-raw-melody-generator-reference",
+            "praat": 1903.548797909125,
+            "world": 23.037707163606495
+          },
+          {
+            "name": "af_heart-blue-native-generator-reference",
+            "praat": 1203.9612318647278,
+            "world": 7.081675554540107
+          },
+          {
+            "name": "am_michael-palm-melody-generator-reference",
+            "praat": 1206.5394355122148,
+            "world": 25.51215380763917
+          },
+          {
+            "name": "am_michael-paw-melody-generator-reference",
+            "praat": 1214.4911130973699,
+            "world": 27.00295202304334
+          },
+          {
+            "name": "am_michael-raw-native-generator-reference",
+            "praat": 1210.7329069789826,
+            "world": 12.440756237904253
+          },
+          {
+            "name": "am_michael-raw-melody-generator-reference",
+            "praat": 1215.302846352987,
+            "world": 501.7837572342035
+          },
+          {
+            "name": "am_michael-blue-melody-generator-reference",
+            "praat": 1216.5492571244417,
+            "world": 27.42600618736176
+          },
+          {
+            "name": "am_michael-true-melody-generator-reference",
+            "praat": 1212.3176916111954,
+            "world": 27.349563881086404
+          },
+          {
+            "name": "af_bella-paw-native-generator-reference",
+            "praat": 1908.6208276894615,
+            "world": 22.206849984146345
+          },
+          {
+            "name": "af_bella-paw-melody-generator-reference",
+            "praat": 1908.5965085536213,
+            "world": 22.230025932240483
+          },
+          {
+            "name": "af_bella-raw-native-generator-reference",
+            "praat": 1907.6172877670572,
+            "world": 14.63555178773588
+          },
+          {
+            "name": "af_bella-raw-melody-generator-reference",
+            "praat": 1906.722924763126,
+            "world": 19.70975322235758
+          },
+          {
+            "name": "af_bella-blue-native-generator-reference",
+            "praat": 1206.5034669347256,
+            "world": 31.566658193821976
+          },
+          {
+            "name": "af_bella-blue-melody-generator-reference",
+            "praat": 1911.192166286406,
+            "world": 25.32962461717504
+          },
+          {
+            "name": "af_bella-true-native-generator-reference",
+            "praat": 1215.1344957439883,
+            "world": 44.54790238514023
+          },
+          {
+            "name": "af_bella-true-melody-generator-reference",
+            "praat": 1912.1915143793492,
+            "world": 28.566583829755814
+          }
+        ]
+      }
+    ],
+    "pitchPassGains": 11,
+    "pitchPassLosses": 4,
+    "wordMatchGains": 10,
+    "wordMatchLosses": 3,
+    "auditions": {
+      "manifest": "evidence/kokoro-control-voicebox/generator-hold-v1/audition/manifest.json",
+      "clips": 162,
+      "plots": 36,
+      "labelledReels": 18,
+      "maximumLevelErrorLu": 9.520833188503275e-08,
+      "maximumSamplePeak": 0.8306516408920288,
+      "processing": "Whole-clip constant gains, common measured level per source across all nine versions, 200 ms loudness gate. No limiter, pitch correction or denoising.",
+      "audioPlayed": false,
+      "listeningAccepted": false
+    },
+    "decision": "The earlier normalization improvement does not generalize reliably. Holding the later generator input improves voicing and word diagnostics on this same panel, but residual pitch disagreements and pronunciation failures prevent any quality acceptance. Retain as a labelled pretrained reference.",
+    "nextExperiment": "Isolate the 80 Hz sideband contribution from the harmonic source and subsequent generator layers, then test stationary references with the independent waveform instrument. Keep source selection, controller changes and neural reconstruction effects separate. Input understanding remains deferred.",
+    "limitations": [
+      "The fresh protocol is frozen; the subsequent generator intervention is development on the same panel, not fresh validation.",
+      "Every synthesized clip still uses pretrained Kokoro weights. No independent waveform-generator training occurs in this experiment.",
+      "ASR on isolated sustained words is unstable: ordinary source words match only 11/18. It cannot establish perceived pronunciation quality.",
+      "Pitch pass thresholds are diagnostic (both trackers >=95% voiced, p95 error <=50 cents), not naturalness or identity acceptance.",
+      "Six raw samples in the upstream reference-normalization condition exceed full scale. Original float files are retained; audition gains avoid PCM clipping.",
+      "Per-utterance captured controls/statistics and offline whole-clip decoding do not establish general voice cloning or causal streaming.",
+      "Whole-clip compute timings exclude model loading, control preparation, source capture, transport and audio devices."
+    ],
+    "appDefaultChanged": false,
+    "listeningAccepted": false,
+    "completionProven": false,
+    "sidebandDiagnostic": {
+      "report": "evidence/kokoro-control-voicebox/generator-hold-v1/grid-sideband-diagnostic.json",
+      "cases": 72,
+      "groups": [
+        {
+          "bothPitchChecksPassed": true,
+          "cases": 11,
+          "medianSidebandToFourHarmonicsDb": -26.67493296417453,
+          "maximumFundamentalPeakErrorCents": 5.082248601236055
+        },
+        {
+          "bothPitchChecksPassed": false,
+          "cases": 7,
+          "medianSidebandToFourHarmonicsDb": -11.785169625751665,
+          "maximumFundamentalPeakErrorCents": 2.8837854691873885
+        }
+      ],
+      "exploratory": true
+    },
+    "tests": {
+      "research": 143,
+      "researchLog": "evidence/audio-native-generator-hold-tests.txt"
+    },
+    "summary": "evidence/kokoro-control-voicebox/generator-hold-v1/combined-summary.json"
+  },
+  "upsamplerGridAndGain": {
+    "scope": "First-upsampler grid-response cancellation and a separately labelled offline gain-only diagnostic",
+    "sources": 18,
+    "newControlledRenders": 108,
+    "comparativeControlledCases": 144,
+    "baselineReplays": 36,
+    "newLocalAsrEvaluations": 108,
+    "reusedOriginalSources": 18,
+    "reusedBaselineEvaluations": 36,
+    "sourceSpeakerDiagnostic": {
+      "method": "source",
+      "cases": 18,
+      "nearestSpeakerMatches": 17,
+      "medianSourceSpeakerCosine": 0.5150571763515472,
+      "medianSourceSpeakerMargin": 0.14190609753131866,
+      "medianSameWordOriginalCosine": 1.0
+    },
+    "unchangedBaselineMaximumDifference": 8.940696716308594e-08,
+    "allHooksRestored": true,
+    "firstUpsamplerConstantInputMaximumVariation": 0.0,
+    "fullCorrectionMaximumRemainingFeatureTemporalRms": 6.921398100984471e-07,
+    "groups": [
+      {
+        "method": "baseline",
+        "cases": 36,
+        "bothPitchChecksPassed": 19,
+        "praatVoicedAtLeast95Percent": 36,
+        "worldVoicedAtLeast95Percent": 35,
+        "homophoneEquivalentMatches": 18,
+        "medianHeldRms": 0.047244399268475123,
+        "maximumRawPeak": 0.48004844784736633,
+        "overFullScaleSamples": 0,
+        "speakerIdentity": {
+          "nearestSpeakerMatches": 31,
+          "medianSourceSpeakerCosine": 0.3989349603652954,
+          "medianSourceSpeakerMargin": 0.07671859860420227,
+          "medianSameWordOriginalCosine": 0.5277373194694519
+        },
+        "pitchFailures": [
+          {
+            "name": "af_heart-raw-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1900.8571041952289,
+              "p95ErrorCents": 1904.9205562712066,
+              "maxErrorCents": 1907.9841599363244,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 147,
+              "voicedFraction": 0.9363057324840764,
+              "medianErrorCents": 7.220245664630977,
+              "p95ErrorCents": 20.171065315501618,
+              "maxErrorCents": 23.475425074248346,
+              "pitchCheckPassed": false
+            }
+          },
+          {
+            "name": "af_heart-raw-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 13.120070926480343,
+              "p95ErrorCents": 1903.548797909125,
+              "maxErrorCents": 1906.8929389809168,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.274583040699126,
+              "p95ErrorCents": 23.037707163606495,
+              "maxErrorCents": 26.794963595750737,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_heart-blue-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1199.2145614496542,
+              "p95ErrorCents": 1203.9612318647278,
+              "maxErrorCents": 1206.618600767607,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 2.4096169532652327,
+              "p95ErrorCents": 7.081675554540107,
+              "maxErrorCents": 9.624944395034284,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-palm-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 147,
+              "voicedFrames": 147,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 21.887108702526685,
+              "p95ErrorCents": 1206.5394355122148,
+              "maxErrorCents": 1214.2968629537654,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 146,
+              "voicedFrames": 146,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 5.864180021234142,
+              "p95ErrorCents": 25.51215380763917,
+              "maxErrorCents": 29.147438266145866,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-paw-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 165,
+              "voicedFrames": 165,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1188.2500766033593,
+              "p95ErrorCents": 1214.4911130973699,
+              "maxErrorCents": 1224.1219586459893,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 165,
+              "voicedFrames": 165,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.536440668986218,
+              "p95ErrorCents": 27.00295202304334,
+              "maxErrorCents": 37.221280982845045,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-raw-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 162,
+              "voicedFrames": 162,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1201.2925820561777,
+              "p95ErrorCents": 1210.7329069789826,
+              "maxErrorCents": 1214.2364771821428,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 162,
+              "voicedFrames": 162,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 4.461820765706353,
+              "p95ErrorCents": 12.440756237904253,
+              "maxErrorCents": 19.385691863012518,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-raw-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 162,
+              "voicedFrames": 162,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1198.2400030971887,
+              "p95ErrorCents": 1215.302846352987,
+              "maxErrorCents": 1221.0391114665215,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 162,
+              "voicedFrames": 162,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 10.444126490757732,
+              "p95ErrorCents": 501.7837572342035,
+              "maxErrorCents": 1273.751875539406,
+              "pitchCheckPassed": false
+            }
+          },
+          {
+            "name": "am_michael-blue-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 154,
+              "voicedFrames": 154,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 15.475684703364168,
+              "p95ErrorCents": 1216.5492571244417,
+              "maxErrorCents": 1226.3692731370393,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 154,
+              "voicedFrames": 154,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.887310782474124,
+              "p95ErrorCents": 27.42600618736176,
+              "maxErrorCents": 37.73121712962423,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-true-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 160,
+              "voicedFrames": 160,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1181.3992067825043,
+              "p95ErrorCents": 1212.3176916111954,
+              "maxErrorCents": 1219.0313557430961,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 160,
+              "voicedFrames": 160,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 7.775790014601169,
+              "p95ErrorCents": 27.349563881086404,
+              "maxErrorCents": 32.7253177697278,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-paw-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1902.482645163086,
+              "p95ErrorCents": 1908.6208276894615,
+              "maxErrorCents": 1911.9009641898062,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.873618369238327,
+              "p95ErrorCents": 22.206849984146345,
+              "maxErrorCents": 26.274790174708833,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-paw-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 14.303988538630552,
+              "p95ErrorCents": 1908.5965085536213,
+              "maxErrorCents": 1914.694943922566,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.367278785859156,
+              "p95ErrorCents": 22.230025932240483,
+              "maxErrorCents": 29.342422862357076,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-raw-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1903.7817989764294,
+              "p95ErrorCents": 1907.6172877670572,
+              "maxErrorCents": 1909.6790371572897,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 5.0532120241022005,
+              "p95ErrorCents": 14.63555178773588,
+              "maxErrorCents": 19.691240042596075,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-raw-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 13.613202521461098,
+              "p95ErrorCents": 1906.722924763126,
+              "maxErrorCents": 1911.4772272965045,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.303344729163493,
+              "p95ErrorCents": 19.70975322235758,
+              "maxErrorCents": 28.083495866987708,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-blue-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1199.3295903230442,
+              "p95ErrorCents": 1206.5034669347256,
+              "maxErrorCents": 1210.9403303540932,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 13.451471318259225,
+              "p95ErrorCents": 31.566658193821976,
+              "maxErrorCents": 37.78000083881717,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-blue-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1892.5854108014646,
+              "p95ErrorCents": 1911.192166286406,
+              "maxErrorCents": 1914.661716763606,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.515665853919819,
+              "p95ErrorCents": 25.32962461717504,
+              "maxErrorCents": 30.734111848893292,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-true-native-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1204.7391950516812,
+              "p95ErrorCents": 1215.1344957439883,
+              "maxErrorCents": 1224.2868785806763,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 18.166750281052813,
+              "p95ErrorCents": 44.54790238514023,
+              "maxErrorCents": 54.0757028933151,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-true-melody-generator-reference",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1891.7387430648757,
+              "p95ErrorCents": 1912.1915143793492,
+              "maxErrorCents": 1916.7089405934212,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 10.570631318849376,
+              "p95ErrorCents": 28.566583829755814,
+              "maxErrorCents": 51.43829480693806,
+              "pitchCheckPassed": true
+            }
+          }
+        ]
+      },
+      {
+        "method": "half",
+        "cases": 36,
+        "bothPitchChecksPassed": 21,
+        "praatVoicedAtLeast95Percent": 32,
+        "worldVoicedAtLeast95Percent": 34,
+        "homophoneEquivalentMatches": 20,
+        "medianHeldRms": 0.04215437923126013,
+        "maximumRawPeak": 0.48004844784736633,
+        "overFullScaleSamples": 0,
+        "speakerIdentity": {
+          "nearestSpeakerMatches": 32,
+          "medianSourceSpeakerCosine": 0.37997451424598694,
+          "medianSourceSpeakerMargin": 0.08986622095108032,
+          "medianSameWordOriginalCosine": 0.4971948266029358
+        },
+        "pitchFailures": [
+          {
+            "name": "af_heart-raw-native-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1901.5751101823682,
+              "p95ErrorCents": 1906.3747942908092,
+              "maxErrorCents": 1907.8363986644647,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 2.572182917070002,
+              "p95ErrorCents": 7.2857938797754285,
+              "maxErrorCents": 10.137730524176689,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_heart-raw-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.848652702184616,
+              "p95ErrorCents": 1902.2432690956946,
+              "maxErrorCents": 1906.291537487991,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 157,
+              "voicedFrames": 157,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 7.246771485807534,
+              "p95ErrorCents": 23.763219180057362,
+              "maxErrorCents": 28.753558616842064,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_heart-blue-native-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1200.0079792928802,
+              "p95ErrorCents": 1205.643434728536,
+              "maxErrorCents": 1209.4519612995011,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 3.9363788098978465,
+              "p95ErrorCents": 9.18073827837643,
+              "maxErrorCents": 12.633285901070671,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_heart-blue-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 10.623795209632648,
+              "p95ErrorCents": 1201.7397205441068,
+              "maxErrorCents": 1205.4703080296385,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 6.76564164905256,
+              "p95ErrorCents": 20.74017052083164,
+              "maxErrorCents": 28.12428541766214,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-raw-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 162,
+              "voicedFrames": 162,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1198.2207477021775,
+              "p95ErrorCents": 1216.2919771658615,
+              "maxErrorCents": 1227.5683948231147,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 162,
+              "voicedFrames": 162,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.593018602272798,
+              "p95ErrorCents": 32.16600275279829,
+              "maxErrorCents": 45.80498213323768,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-blue-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 154,
+              "voicedFrames": 154,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 16.564890880030546,
+              "p95ErrorCents": 1212.5241966900144,
+              "maxErrorCents": 1219.6502931231646,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 154,
+              "voicedFrames": 154,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.29830670727307,
+              "p95ErrorCents": 26.6576899145833,
+              "maxErrorCents": 45.765728614750564,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "am_michael-true-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 160,
+              "voicedFrames": 160,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1178.3426017755692,
+              "p95ErrorCents": 1211.9406990425525,
+              "maxErrorCents": 1218.9931657888048,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 160,
+              "voicedFrames": 160,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 7.27552466090542,
+              "p95ErrorCents": 23.39364059902367,
+              "maxErrorCents": 34.23993374767321,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-paw-native-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1906.4839808472764,
+              "p95ErrorCents": 1914.2599547427387,
+              "maxErrorCents": 1916.144209721836,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 7.871290821560675,
+              "p95ErrorCents": 26.614610278482562,
+              "maxErrorCents": 40.084896015922624,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-paw-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 154,
+              "voicedFraction": 0.9935483870967742,
+              "medianErrorCents": 15.360488816070742,
+              "p95ErrorCents": 1912.591031663735,
+              "maxErrorCents": 1918.6433863223592,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.058421089004828,
+              "p95ErrorCents": 22.35304986682557,
+              "maxErrorCents": 28.699574993039462,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-raw-native-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 7,
+              "voicedFraction": 0.04516129032258064,
+              "medianErrorCents": 1901.3139039919586,
+              "p95ErrorCents": 1904.7150886018615,
+              "maxErrorCents": 1905.3294601226087,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 6.470104410300414,
+              "p95ErrorCents": 21.514628899280268,
+              "maxErrorCents": 36.920762588468456,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-raw-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 109,
+              "voicedFraction": 0.7032258064516129,
+              "medianErrorCents": 10.545685937144704,
+              "p95ErrorCents": 24.11152677923022,
+              "maxErrorCents": 1903.2937501516162,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.748011710857378,
+              "p95ErrorCents": 21.982460960821882,
+              "maxErrorCents": 29.433354238731283,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-blue-native-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 48,
+              "voicedFraction": 0.3096774193548387,
+              "medianErrorCents": 1198.1105035929313,
+              "p95ErrorCents": 1903.1465120702712,
+              "maxErrorCents": 1910.9706737896518,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 34,
+              "voicedFraction": 0.21935483870967742,
+              "medianErrorCents": 25.296476296326187,
+              "p95ErrorCents": 58.422947491838435,
+              "maxErrorCents": 81.06331670083266,
+              "pitchCheckPassed": false
+            }
+          },
+          {
+            "name": "af_bella-blue-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 99,
+              "voicedFraction": 0.6387096774193548,
+              "medianErrorCents": 11.457262168471543,
+              "p95ErrorCents": 1191.9190602134029,
+              "maxErrorCents": 1206.5397567608788,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 147,
+              "voicedFraction": 0.9483870967741935,
+              "medianErrorCents": 10.450896634765236,
+              "p95ErrorCents": 44.916879230509196,
+              "maxErrorCents": 79.09067491914627,
+              "pitchCheckPassed": false
+            }
+          },
+          {
+            "name": "af_bella-true-native-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 1201.5172915396129,
+              "p95ErrorCents": 1211.476084880534,
+              "maxErrorCents": 1221.6184262937836,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 24.734557548052,
+              "p95ErrorCents": 53.303324330368724,
+              "maxErrorCents": 67.70035707956752,
+              "pitchCheckPassed": false
+            }
+          },
+          {
+            "name": "af_bella-true-melody-generator-reference-grid-half",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 15.845249806303785,
+              "p95ErrorCents": 1909.206578081427,
+              "maxErrorCents": 1916.933384987579,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 11.72771387641943,
+              "p95ErrorCents": 43.77170047881201,
+              "maxErrorCents": 67.7004246133996,
+              "pitchCheckPassed": true
+            }
+          }
+        ]
+      },
+      {
+        "method": "full",
+        "cases": 36,
+        "bothPitchChecksPassed": 27,
+        "praatVoicedAtLeast95Percent": 27,
+        "worldVoicedAtLeast95Percent": 36,
+        "homophoneEquivalentMatches": 22,
+        "medianHeldRms": 0.03293840089112733,
+        "maximumRawPeak": 0.48004844784736633,
+        "overFullScaleSamples": 0,
+        "speakerIdentity": {
+          "nearestSpeakerMatches": 31,
+          "medianSourceSpeakerCosine": 0.3505866229534149,
+          "medianSourceSpeakerMargin": 0.09305956959724426,
+          "medianSameWordOriginalCosine": 0.47840115427970886
+        },
+        "pitchFailures": [
+          {
+            "name": "am_michael-paw-melody-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 165,
+              "voicedFrames": 146,
+              "voicedFraction": 0.8848484848484849,
+              "medianErrorCents": 7.141260793338113,
+              "p95ErrorCents": 25.073567054660064,
+              "maxErrorCents": 34.96923365295776,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 165,
+              "voicedFrames": 165,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 7.571057374754007,
+              "p95ErrorCents": 23.725594214275933,
+              "maxErrorCents": 34.06086058443821,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-paw-native-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 0,
+              "voicedFraction": 0.0,
+              "medianErrorCents": null,
+              "p95ErrorCents": null,
+              "maxErrorCents": null,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 12.319862544203241,
+              "p95ErrorCents": 29.428516135674155,
+              "maxErrorCents": 32.81319653501573,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-paw-melody-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 23,
+              "voicedFraction": 0.14838709677419354,
+              "medianErrorCents": 14.905774929535848,
+              "p95ErrorCents": 23.7339604181815,
+              "maxErrorCents": 24.043588640611834,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 10.10260022689167,
+              "p95ErrorCents": 24.50401835451636,
+              "maxErrorCents": 32.81640377267678,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-raw-native-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 0,
+              "voicedFraction": 0.0,
+              "medianErrorCents": null,
+              "p95ErrorCents": null,
+              "maxErrorCents": null,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 31.71310013282332,
+              "p95ErrorCents": 40.35043144834155,
+              "maxErrorCents": 45.00918970255215,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-raw-melody-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 0,
+              "voicedFraction": 0.0,
+              "medianErrorCents": null,
+              "p95ErrorCents": null,
+              "maxErrorCents": null,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 13.00315604323429,
+              "p95ErrorCents": 38.57593960386517,
+              "maxErrorCents": 51.54900573712124,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-blue-native-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 0,
+              "voicedFraction": 0.0,
+              "medianErrorCents": null,
+              "p95ErrorCents": null,
+              "maxErrorCents": null,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 2.740029130587894,
+              "p95ErrorCents": 7.4708620307545655,
+              "maxErrorCents": 12.228950644072716,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-blue-melody-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 0,
+              "voicedFraction": 0.0,
+              "medianErrorCents": null,
+              "p95ErrorCents": null,
+              "maxErrorCents": null,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.62796707914956,
+              "p95ErrorCents": 23.581619805696516,
+              "maxErrorCents": 41.640149796190904,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-true-native-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 5,
+              "voicedFraction": 0.03355704697986577,
+              "medianErrorCents": 6.841912674138779,
+              "p95ErrorCents": 1517.0130405880893,
+              "maxErrorCents": 1894.2150834143592,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 3.9434438792936835,
+              "p95ErrorCents": 9.42381990927828,
+              "maxErrorCents": 10.845535875063115,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-true-melody-generator-reference-grid-full",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 122,
+              "voicedFraction": 0.8187919463087249,
+              "medianErrorCents": 11.391279480428885,
+              "p95ErrorCents": 23.547587429977703,
+              "maxErrorCents": 27.024166352300536,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 149,
+              "voicedFrames": 149,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 9.253564088975203,
+              "p95ErrorCents": 21.4511264607604,
+              "maxErrorCents": 25.78033676014163,
+              "pitchCheckPassed": true
+            }
+          }
+        ]
+      },
+      {
+        "method": "level",
+        "cases": 36,
+        "bothPitchChecksPassed": 34,
+        "praatVoicedAtLeast95Percent": 34,
+        "worldVoicedAtLeast95Percent": 36,
+        "homophoneEquivalentMatches": 24,
+        "medianHeldRms": 0.047026211653529416,
+        "maximumRawPeak": 0.48004844784736633,
+        "overFullScaleSamples": 0,
+        "speakerIdentity": {
+          "nearestSpeakerMatches": 32,
+          "medianSourceSpeakerCosine": 0.3529423177242279,
+          "medianSourceSpeakerMargin": 0.08986324071884155,
+          "medianSameWordOriginalCosine": 0.47378717362880707
+        },
+        "pitchFailures": [
+          {
+            "name": "af_bella-raw-melody-generator-reference-grid-full-level",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 132,
+              "voicedFraction": 0.8516129032258064,
+              "medianErrorCents": 10.297769233352275,
+              "p95ErrorCents": 30.921364206155516,
+              "maxErrorCents": 42.47832613483707,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 13.002863586447454,
+              "p95ErrorCents": 38.440661722918854,
+              "maxErrorCents": 51.547830465777984,
+              "pitchCheckPassed": true
+            }
+          },
+          {
+            "name": "af_bella-blue-melody-generator-reference-grid-full-level",
+            "praat": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 121,
+              "voicedFraction": 0.7806451612903226,
+              "medianErrorCents": 12.6093446684206,
+              "p95ErrorCents": 30.528814853343807,
+              "maxErrorCents": 51.01671523422688,
+              "pitchCheckPassed": false
+            },
+            "world": {
+              "scope": "Entire sustained interval excluding fixed 50 ms attack/release margins",
+              "eligibleFrames": 155,
+              "voicedFrames": 155,
+              "voicedFraction": 1.0,
+              "medianErrorCents": 8.628083782139221,
+              "p95ErrorCents": 23.60084960873428,
+              "maxErrorCents": 41.6422118535982,
+              "pitchCheckPassed": true
+            }
+          }
+        ]
+      }
+    ],
+    "pairedChanges": [
+      {
+        "method": "half",
+        "pitchPassGains": 3,
+        "pitchPassLosses": 1,
+        "wordMatchGains": 3,
+        "wordMatchLosses": 1
+      },
+      {
+        "method": "full",
+        "pitchPassGains": 8,
+        "pitchPassLosses": 0,
+        "wordMatchGains": 6,
+        "wordMatchLosses": 2
+      },
+      {
+        "method": "level",
+        "pitchPassGains": 15,
+        "pitchPassLosses": 0,
+        "wordMatchGains": 7,
+        "wordMatchLosses": 1
+      }
+    ],
+    "spectralDiagnostic": {
+      "report": "evidence/kokoro-control-voicebox/upsampler-grid-v1/spectral-evaluation.json",
+      "groups": [
+        {
+          "method": "excitation",
+          "cases": 18,
+          "medianSidebandToFourHarmonicsDb": -42.57019244093124,
+          "maximumSidebandToFourHarmonicsDb": -41.76087812696761,
+          "maximumFundamentalPeakErrorCents": 5.082248601236055
+        },
+        {
+          "method": "baseline",
+          "cases": 18,
+          "medianSidebandToFourHarmonicsDb": -19.36085282821942,
+          "maximumSidebandToFourHarmonicsDb": -7.345546584849396,
+          "maximumFundamentalPeakErrorCents": 5.082248601236055
+        },
+        {
+          "method": "half",
+          "cases": 18,
+          "medianSidebandToFourHarmonicsDb": -19.744631310873757,
+          "maximumSidebandToFourHarmonicsDb": -2.412113603836945,
+          "maximumFundamentalPeakErrorCents": 5.082248601236055
+        },
+        {
+          "method": "full",
+          "cases": 18,
+          "medianSidebandToFourHarmonicsDb": -32.05974642263452,
+          "maximumSidebandToFourHarmonicsDb": -24.260069126910444,
+          "maximumFundamentalPeakErrorCents": 5.082248601236055
+        }
+      ],
+      "sidebandsReducedCases": 17,
+      "medianPairedSidebandChangeDb": -14.087216932683493
+    },
+    "gainDiagnostic": {
+      "rangeDb": [
+        -1.2561005199774806,
+        27.802138517711995
+      ],
+      "medianDb": 2.9989017099237527,
+      "wholeRenderedClipsRequired": true,
+      "notStreaming": true,
+      "scope": "Constant gain in the steady core with guarded cosine ramps, calibrated to the uncorrected core RMS; no pitch correction or filtering."
+    },
+    "outsideHoldBoundaryCheck": {
+      "guardSeconds": 0.2,
+      "maximumSampleDifference": 8.940696716308594e-08,
+      "scope": "Baseline compared to each candidate outside the hold plus a 200 ms guard; this does not guarantee unchanged audible joins."
+    },
+    "auditions": {
+      "manifest": "evidence/kokoro-control-voicebox/grid-level-v1/audition/manifest.json",
+      "clips": 162,
+      "plots": 36,
+      "labelledReels": 18,
+      "maximumLevelErrorLu": 7.45435606575029e-08,
+      "maximumSamplePeak": 0.8495081663131714,
+      "audioPlayed": false,
+      "listeningAccepted": false,
+      "processing": "Constant whole-clip audition gains, matched per source across all nine versions with 200 ms loudness gating. No limiting, denoising or pitch correction. The separately labelled level condition already includes its experimental held-interior gain."
+    },
+    "tests": {
+      "research": 146,
+      "log": "evidence/audio-native-upsampler-grid-tests.txt"
+    },
+    "primaryReference": "https://arxiv.org/abs/2010.14356",
+    "decision": "The first upsampler contributes materially to the held-output 80 Hz sidebands: cancelling its constant-input phase response reduces them in 17/18 steady notes. Full cancellation also suppresses some vowel levels and shifts speaker embeddings. Offline held-gain compensation improves pitch/word diagnostics but does not restore baseline embedding similarity. Retain all conditions as controlled pretrained references; no quality default is promoted.",
+    "nextExperiment": "Transfer the uncorrected and corrected/gain-compensated sustained references into the independent waveform instrument. Compare direct teacher output, independent reconstruction and immediate-control rendering with the same authored pitch and source intervals; retain pitch, identity and waveform-fidelity failures separately. Keep pretrained capture out of the runtime and input understanding deferred.",
+    "limitations": [
+      "The panel is post-validation development on the same three synthetic voices and six words.",
+      "All teacher outputs still use Kokoro pretrained weights; this is not independent neural speech-model training.",
+      "Removing a periodic intermediate response can also remove useful voice detail. Lower sideband energy is not naturalness acceptance.",
+      "Gain compensation uses complete rendered audio and known hold boundaries, not a causal level controller.",
+      "ASR of isolated sustained words and ECAPA on singing/vowels are diagnostic; original teacher sources are imperfect baselines.",
+      "The transient feature hooks include CPU observation/correction and are not an optimized streaming implementation.",
+      "No perceptual identity, human-reference cloning or Kokoro-level independent output has been accepted."
+    ],
+    "appDefaultChanged": false,
+    "listeningAccepted": false,
+    "completionProven": false,
+    "summary": "evidence/kokoro-control-voicebox/grid-level-v1/combined-summary.json",
+    "artifactQa": "evidence/kokoro-control-voicebox/grid-level-v1/audition-qa.json"
+  },
+  "independentSyllableTransfer": {
+    "summary": "evidence/neural-syllables/teacher-transfer-v1/summary.json",
+    "scope": "Captured teacher waveforms transferred to a frozen independent decoder and onset/hold/release controller",
+    "newNeuralTraining": false,
+    "sourceAudio": "Existing pretrained Kokoro controlled references; no Kokoro weights in independent rendering.",
+    "runtime": "Frozen axis-detail-v2 decoder with encoded waveform controls and offline pulse/release annotations; immediate 5 ms commands, fixed 20 ms delay.",
+    "compactArticulatoryControls": false,
+    "generalPhonemeGeneration": false,
+    "listeningAccepted": false,
+    "appDefaultChanged": false,
+    "files": {
+      "voice-research/audio_native/neural_syllable_stream.py": "a8af5569367f18fd1179d03dcb776fd7ec54fa2b52e76587669ad3b157f650df",
+      "voice-research/audio_native/test_neural_syllable_stream.py": "17a843622f4e414009351e71f102fb2e11e6d35c9d9e4d3db63c110f57f8a1a8",
+      "voice-research/audio_native/transfer_kokoro_syllables.py": "038bb7d2a53e36e5e71ca68a10e46cb0162694fe38aa9f27ee24725aac1a04d8",
+      "voice-research/audio_native/evaluate_neural_syllable_transfer.py": "957f1d084346ffc84dd068f5f35427280ec0a929a287096c482bb0012a79dc7e",
+      "scripts/package_neural_syllable_transfer.py": "814672f797393667c92c5244f5713c14519e1d4199315fa6840a1df351ab5d09"
+    }
+  },
+  "capturedContextPreservation": {
+    "summary": "evidence/neural-syllables/context-v1/summary.json",
+    "scope": "Preserve original decoded prefix, release or both around the unchanged retuned held vowel",
+    "sourcePanel": "The same 18 corrected/gain-compensated synthetic sources; development ablation, not held-out validation.",
+    "newNeuralTraining": false,
+    "preservesCapturedPitchInContext": true,
+    "fadeSeconds": 0.03,
+    "qualityWinnerPromoted": false,
+    "listeningAccepted": false,
+    "appDefaultChanged": false,
+    "runtime": "Frozen independent decoder and captured unit, immediate pitch/release control; optional original decoded prefix/release around retuned hold.",
+    "files": {
+      "voice-research/audio_native/neural_context_stream.py": "4fd0c561b21c592968549c25bbfceb451cce64ffad69e1169f439019784f71a0",
+      "voice-research/audio_native/test_neural_context_stream.py": "a2e177d9c9b32634ca8a22f63ebecc5fb38ca78c2714290633f312b4da3dbbdb",
+      "voice-research/audio_native/benchmark_neural_context.py": "4dfd5f9129a5c90d89fcb05fe8e55398008f32bb0f9140a22c280b65c4c31adb",
+      "voice-research/audio_native/summarize_neural_context.py": "56d5a8e4327ea62db0031110a96def6af3b0a15868a22c809e955555b5cff03c",
+      "scripts/package_neural_context.py": "46085ac4806cfbda906c3d8e2fed8c9e331d842b1733304713bdb35688859f9f"
+    }
+  },
+  "heldGrainWindowAblation": {
+    "summary": "evidence/neural-syllables/grain-windows-v1/summary.json",
+    "scope": "Held-grain window ablation with unchanged pulses, source spans, controls, prefix and release grain rules",
+    "sourcePanel": "The same 18 corrected/gain-compensated synthetic sources; development ablation, not fresh validation.",
+    "newNeuralTraining": false,
+    "heldOnly": true,
+    "radiusLimitSamples": 479,
+    "qualityWinnerPromoted": false,
+    "listeningAccepted": false,
+    "appDefaultChanged": false,
+    "files": {
+      "voice-research/audio_native/neural_grain_window_stream.py": "aa8de9774d3dd879d365e25a923701bf88e26990fcbe6ad55b8ae0bc9765a1c8",
+      "voice-research/audio_native/test_neural_grain_window_stream.py": "14e32f371722ac615517affa40712c48899145ae06ec52dd5d3254beaed236f7",
+      "voice-research/audio_native/benchmark_neural_grain_windows.py": "40da392bdd6c9b2999de885cc609e75d726c6ffdae3c61bcde6eae721c91e428",
+      "voice-research/audio_native/summarize_neural_grain_windows.py": "543e32715845f909aa9ef88954fa884ca1c1e0fd24f51d37ed2d1294ca375cc9",
+      "scripts/package_neural_grain_windows.py": "4560ec2a56530f9db8b75a38b00b7914fa42062a655aa81ca1a78602350fd362"
+    }
+  },
+  "playableLiveOutput": {
+    "scope": "Playable output from saved continuous acoustic controls; no new pronunciation generation",
+    "url": "http://127.0.0.1:8794/",
+    "complete": true,
+    "updatedAt": "2026-11-07T13:05:33.781180+00:00",
+    "units": 18,
+    "naturalSpeechPairs": 9,
+    "sourcePanelReused": true,
+    "newNeuralTraining": false,
+    "medianNaturalSpeechReconstructionSnrDb": 32.91197006618517,
+    "http": {
+      "report": "evidence/live-voicebox/v1/http-check.json",
+      "speechCases": 9,
+      "maximumSpeechReplayError": 4.358342930999015e-08,
+      "liveControlReplayError": 0.0,
+      "firstPacketMedianMs": 4.134916700422764,
+      "maximumBlockMs": 8.487749844789505,
+      "blocksOver5Ms": 12,
+      "stopAndDisconnectPassed": true,
+      "allComparisonHashesVerified": true,
+      "activeSessionsAfter": 0
+    },
+    "browser": {
+      "scope": "Browser automation with live monitor gain zero; no audible listening",
+      "checks": [
+        {
+          "name": "Held voice, mouse and keyboard notes, Finish word",
+          "firstPacketMs": 38,
+          "observedUnderruns": 0,
+          "finalState": "Performance finished"
+        },
+        {
+          "name": "Prepared Heart speech stream",
+          "firstPacketMs": 30,
+          "observedUnderruns": 0,
+          "finalQueuedMs": 0,
+          "finalState": "Performance finished"
+        },
+        {
+          "name": "Start and Escape interruption",
+          "firstPacketMs": 35,
+          "observedUnderruns": 0,
+          "finalQueuedMs": 0,
+          "finalState": "Stopped"
+        },
+        {
+          "name": "Reveal and hide A/B labels",
+          "passed": true
+        }
+      ],
+      "screenshots": [
+        "evidence/live-voicebox/v1/browser-speech.jpg",
+        "evidence/live-voicebox/v1/browser-ready.jpg"
+      ],
+      "silentCheckDisabledAfterStop": true,
+      "noAutoplay": true,
+      "listeningAccepted": false,
+      "activeSessionsAfter": 0
+    },
+    "tests": {
+      "python": 5,
+      "javascript": 6,
+      "passed": true,
+      "logs": [
+        "evidence/live-voicebox/v1/python-tests.txt",
+        "evidence/live-voicebox/v1/javascript-tests.txt"
+      ]
+    },
+    "voiceDefaultChanged": false,
+    "listeningAccepted": false,
+    "kokoroParityAccepted": false,
+    "inputUnderstandingDeferred": true,
+    "limits": [
+      "Saved dense acoustic detail is required; no compact learned articulators or new pronunciation generator.",
+      "No new training or validation source panel. Prepared speech streaming does not establish streaming generation from arriving text.",
+      "Individual local first-packet measurements exclude device latency; compute overruns occurred.",
+      "Playback fades mean the browser output differs at starts and stops from exact network samples.",
+      "No general short-reference cloning or singing naturalness acceptance. No human-like learning or predictive-coding result."
+    ],
+    "nextExperiment": "Assess natural new articulation transitions on fresh material, maintaining reconstruction controls and explicit source identity comparisons; collect listening evidence before claiming Kokoro output parity.",
+    "implementationHashes": {
+      "voice-research/live_voicebox/server.py": "f632f9d381b26d45dce4e4e324f38ba43786509d878538a22d03bfd70ce0c3dc",
+      "voice-research/live_voicebox/test_runtime.py": "f704c4c810ecd5e2e78ff4649fe5596ec43117172ac4d657ac3f492f81fecd64",
+      "voice-research/live_voicebox/runtime.py": "11c7d646a39cdb0a17df1fa78fe39f556734ae10bb9de45f2f6b6239bd22801f",
+      "voice-research/live_voicebox/check_http.py": "e60458e776b07a3c1d4098a00cb63d672b50353dbd7467b35f433cef424eb049",
+      "voice-research/live_voicebox/prepare.py": "10a382832941a6e96ce54d401ca7b0f9727e6d2c3f5b2fcc65c3ce04077f8ac9",
+      "voice-research/live_voicebox/public/index.html": "de2b213a4a0f5c0d35f32c62ee53b342ba7575cbcc76f2830f706484f0e57aca",
+      "voice-research/live_voicebox/public/pcm-player.js": "fe0568ffe8c88d00d9f63e6590f8f4e929525e7c66c2978ff1f025254879f7e8",
+      "voice-research/live_voicebox/public/pcm-ring.js": "3592ce0b077116b765d77d8952e3e9bd88d1e541ef8ebf95646c9c04a5412981",
+      "voice-research/live_voicebox/public/style.css": "ac66dce129e01b6cdf0e09edd56ef5487df5c50269b55e8a98c7093f171d1341",
+      "voice-research/live_voicebox/public/pcm-bytes.js": "06236df792002a3289f003305de2d3f19e2d7a99b73005fa6fbffbbc8ded81b2",
+      "voice-research/live_voicebox/public/app.js": "61ebdd18c21a7f5e26faff77c24e540c6fe817cefff69fda90b86fb9200f6038"
+    }
+  },
+  "resonanceMorph": {
+    "scope": "Continuous spectral-resonance movement and a compact fitted timing curve, evaluated on eighteen new diphthong words",
+    "trainingSources": 9,
+    "freshValidationSources": 18,
+    "capturedUnits": 9,
+    "captureRepair": {
+      "reason": "Eight source periods yielded under 45 ms for all six higher-pitched development examples, leaving too few interior envelope frames. Retain at least 80 ms using pitch-adaptive pulse support before any held-out rendering.",
+      "initialCaptured": 3,
+      "initialRejected": 6,
+      "prior": "evidence/resonance-morph/v1/capture-attempt-1/capture.json",
+      "validationUsedToTune": false
+    },
+    "controlledRenders": 72,
+    "oracleDiagnosticRenders": 18,
+    "comparisonCases": 126,
+    "trajectoryParameters": 27,
+    "newNeuralTraining": false,
+    "newFittedTimingControls": true,
+    "medianFreshReconstructionSnrDb": 39.92291281105072,
+    "minimumFreshReconstructionSnrDb": 30.485682853630802,
+    "groups": [
+      {
+        "method": "teacher",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 0.0,
+        "medianWholeNucleusSpectrumMaeDb": 0.0,
+        "bothPitchChecksPassed": 12,
+        "nearestSpeakerMatches": 14,
+        "medianSourceSpeakerCosine": 0.2320166751742363,
+        "medianSameNucleusCosine": 0.9999999403953552,
+        "pitchFailures": [
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 50.48307310288502,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 47.63153804326283,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 48.40947094252714,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 51.197753863465465,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 79.58333393190352,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.06421625188619,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.57892530887569,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 69.75475563750383,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.90108585068486,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 39.37548249059878,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 42.50595956112119,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.01346051216505,
+              "passed": false
+            }
+          }
+        ]
+      },
+      {
+        "method": "reconstruction",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 0.09209991903587925,
+        "medianWholeNucleusSpectrumMaeDb": 0.10654789803989768,
+        "bothPitchChecksPassed": 12,
+        "nearestSpeakerMatches": 13,
+        "medianSourceSpeakerCosine": 0.23227936029434204,
+        "medianSameNucleusCosine": 0.9958575367927551,
+        "pitchFailures": [
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 50.62461890639003,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 47.73404569057315,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 48.420033207115154,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 51.15101340821887,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 79.55043727523491,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.105077622286615,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.62860156285588,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 69.5763583386861,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.96909720141754,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 42.054807856608264,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 42.69200932664248,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.00141913524156,
+              "passed": false
+            }
+          }
+        ]
+      },
+      {
+        "method": "grain-linear",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 5.230679685584617,
+        "medianWholeNucleusSpectrumMaeDb": 5.2042478849877165,
+        "bothPitchChecksPassed": 6,
+        "nearestSpeakerMatches": 12,
+        "medianSourceSpeakerCosine": 0.1918572410941124,
+        "medianSameNucleusCosine": 0.3364052176475525,
+        "pitchFailures": [
+          {
+            "name": "af_heart-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 51.218078338980675,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 47.83107882850307,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 64.66038443935463,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 54.36969618450289,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.28931735982327,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 47.58153441116932,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 72.63548768212135,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 62.42834763950799,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 50.769769111335265,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 62.49601622173079,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.851465800746944,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 68.1744290774843,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 0.9682539682539683,
+              "p95ErrorCents": 56.14269766101489,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 72.88188264242112,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 54.17218652458407,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 38.65262368423293,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 61.52148144495831,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.232188016594385,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 43.605162543015446,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 54.36558127819165,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 66.74054582261975,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 0.9833333333333333,
+              "p95ErrorCents": 73.95702085189538,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.064323060320625,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 55.2941095372229,
+              "passed": false
+            }
+          }
+        ],
+        "maximumRawPeak": 1.2563472139553686,
+        "overFullScaleSamples": 37,
+        "overFullScaleCases": [
+          "am_michael-high",
+          "am_michael-sigh"
+        ]
+      },
+      {
+        "method": "grain-learned",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 5.342493656148078,
+        "medianWholeNucleusSpectrumMaeDb": 5.273132331301542,
+        "bothPitchChecksPassed": 6,
+        "nearestSpeakerMatches": 14,
+        "medianSourceSpeakerCosine": 0.16720767319202423,
+        "medianSameNucleusCosine": 0.32269513607025146,
+        "pitchFailures": [
+          {
+            "name": "af_heart-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 64.92944665324309,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 44.16201060381684,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 65.66975043418348,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.22548582812869,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.08650181676594,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 48.247790069497405,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 72.9356308440034,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 63.80087480117156,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 53.29901730810203,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 63.36898020548599,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 63.96904043293188,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 69.41075632411423,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 0.9682539682539683,
+              "p95ErrorCents": 55.155008160677156,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 73.05325728406952,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 54.276209634583026,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 40.38605240756643,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 61.776048577331224,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 49.699130891913036,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 43.777345522952416,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 53.619822802036474,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 66.75125180089874,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 0.9833333333333333,
+              "p95ErrorCents": 83.07126683553959,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 68.40881372486035,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 59.14745242499541,
+              "passed": false
+            }
+          }
+        ],
+        "maximumRawPeak": 1.2563472139553686,
+        "overFullScaleSamples": 37,
+        "overFullScaleCases": [
+          "am_michael-high",
+          "am_michael-sigh"
+        ]
+      },
+      {
+        "method": "filter-linear",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 4.963737442368469,
+        "medianWholeNucleusSpectrumMaeDb": 5.204857938616545,
+        "bothPitchChecksPassed": 7,
+        "nearestSpeakerMatches": 10,
+        "medianSourceSpeakerCosine": 0.129180908203125,
+        "medianSameNucleusCosine": 0.31374235451221466,
+        "pitchFailures": [
+          {
+            "name": "af_heart-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 80.2262626685473,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 45.546258667100325,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 74.3874988463881,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 69.32952438637555,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.905022646743205,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 47.482812324778244,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 70.58755939369495,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 61.91376278052847,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.17904133478476,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 56.91507258997523,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.65347903368914,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 64.10647560774187,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 70.14441705854047,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 81.64066829715183,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.857198068104196,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 48.6966102542803,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 40.28032707516655,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 56.001901230703275,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.83593501612371,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 55.39975266977758,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 61.2673624910067,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 46.09577403972066,
+              "passed": true
+            }
+          }
+        ],
+        "maximumRawPeak": 1.2563472139553689,
+        "overFullScaleSamples": 39,
+        "overFullScaleCases": [
+          "af_heart-boy",
+          "am_michael-high",
+          "am_michael-sigh"
+        ]
+      },
+      {
+        "method": "filter-learned",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 5.279407507574411,
+        "medianWholeNucleusSpectrumMaeDb": 5.216140765320256,
+        "bothPitchChecksPassed": 6,
+        "nearestSpeakerMatches": 7,
+        "medianSourceSpeakerCosine": 0.11918509006500244,
+        "medianSameNucleusCosine": 0.28749485313892365,
+        "pitchFailures": [
+          {
+            "name": "af_heart-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 79.02342765041531,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 44.39023191843703,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 69.12476235847373,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 73.20268063530548,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 59.38246028661565,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 51.92910839567093,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 71.50906265152592,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 65.26842955641075,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.64012308975523,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 56.93645484596937,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 61.33983967718,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 64.78044597690958,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 70.58750746097823,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 81.23630688957113,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 63.984031851351176,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 41.255486880480625,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.857198069572114,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 48.61998111359823,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 41.973217564001395,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 54.14754616667977,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 62.13413970453187,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.9693148077205,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 57.94734849668865,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 49.93368240138655,
+              "passed": true
+            }
+          }
+        ],
+        "maximumRawPeak": 1.2563472139553689,
+        "overFullScaleSamples": 37,
+        "overFullScaleCases": [
+          "am_michael-high",
+          "am_michael-sigh"
+        ]
+      },
+      {
+        "method": "oracle-envelope",
+        "cases": 18,
+        "medianTransitionSpectrumMaeDb": 3.389351705501631,
+        "medianWholeNucleusSpectrumMaeDb": 3.7407038138499553,
+        "bothPitchChecksPassed": 4,
+        "nearestSpeakerMatches": 14,
+        "medianSourceSpeakerCosine": 0.19610576331615448,
+        "medianSameNucleusCosine": 0.7051373422145844,
+        "pitchFailures": [
+          {
+            "name": "af_heart-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 50.93900357471531,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 43.9917037752635,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_heart-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 113.65198840720072,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 46.954276019482116,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_heart-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 56.59374207195435,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 41.538134157649154,
+              "passed": true
+            }
+          },
+          {
+            "name": "am_michael-high",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 74.97957726978855,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 58.92499491110442,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 70.71547408120362,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 58.526747424779686,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 84.8706010126875,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 67.12825403975035,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 53.24183164682298,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 60.47545008160011,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 74.30403852134587,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 62.66609683298352,
+              "passed": false
+            }
+          },
+          {
+            "name": "am_michael-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 71.29829148384609,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 88.16049475426713,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-sigh",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 63.521968013006834,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 41.83317941779827,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-how",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 59.24641580601538,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 45.40960023386729,
+              "passed": true
+            }
+          },
+          {
+            "name": "af_bella-cow",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 48.915058748256605,
+              "passed": true
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 52.09360762883848,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-boy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 51.90539745875361,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 50.419223621891014,
+              "passed": false
+            }
+          },
+          {
+            "name": "af_bella-toy",
+            "praat": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 65.97404330612089,
+              "passed": false
+            },
+            "world": {
+              "voicedFraction": 1.0,
+              "p95ErrorCents": 51.679528638601255,
+              "passed": false
+            }
+          }
+        ],
+        "maximumRawPeak": 1.5881665667045182,
+        "overFullScaleSamples": 219,
+        "overFullScaleCases": [
+          "af_heart-sigh",
+          "af_heart-boy",
+          "af_heart-toy",
+          "am_michael-high",
+          "am_michael-boy",
+          "am_michael-toy"
+        ]
+      }
+    ],
+    "pairedChanges": [
+      {
+        "method": "grain-learned",
+        "reference": "grain-linear",
+        "medianPairedSpectrumErrorChangeDb": 0.14470269089551735,
+        "spectrumImprovedCases": 7,
+        "spectrumWorsenedCases": 11,
+        "medianPairedSameNucleusCosineChange": -0.0024670660495758057
+      },
+      {
+        "method": "filter-linear",
+        "reference": "grain-linear",
+        "medianPairedSpectrumErrorChangeDb": -0.2479929215593577,
+        "spectrumImprovedCases": 13,
+        "spectrumWorsenedCases": 5,
+        "medianPairedSameNucleusCosineChange": -0.0020194947719573975
+      },
+      {
+        "method": "filter-learned",
+        "reference": "grain-linear",
+        "medianPairedSpectrumErrorChangeDb": -0.16188749216803489,
+        "spectrumImprovedCases": 13,
+        "spectrumWorsenedCases": 5,
+        "medianPairedSameNucleusCosineChange": -0.05495154857635498
+      },
+      {
+        "method": "oracle-envelope",
+        "reference": "grain-linear",
+        "medianPairedSpectrumErrorChangeDb": -1.9478127329996817,
+        "spectrumImprovedCases": 18,
+        "spectrumWorsenedCases": 0,
+        "medianPairedSameNucleusCosineChange": 0.3263893276453018
+      }
+    ],
+    "runtime": {
+      "controlPacketMs": 5,
+      "fixedSourceDelayMs": 20,
+      "filterLookaheadSamples": 0,
+      "filterHistorySamples": 511,
+      "maximumBlockMs": 5.76737429946661,
+      "blocksOver5Ms": 1,
+      "excludes": "Offline preparation, model loading, transport, browser buffering and devices; oracle probe is offline."
+    },
+    "tests": {
+      "count": 163,
+      "passed": true,
+      "log": "evidence/audio-native-resonance-morph-tests.txt"
+    },
+    "audition": {
+      "url": "http://127.0.0.1:8791/voicebox-resonance-lab.html",
+      "clips": 126,
+      "plots": 19,
+      "manifest": "evidence/resonance-morph/v1/audition.json",
+      "maximumPeak": 0.6451855897903442,
+      "maximumRmsError": 4.579439910612493e-09,
+      "autoplay": false
+    },
+    "browserCheck": {
+      "sourceSelectionAndSevenPlayersVerified": true,
+      "audioPlayed": false,
+      "screenshot": "evidence/resonance-morph/v1/browser-check.jpg"
+    },
+    "listeningAccepted": false,
+    "kokoroParityAccepted": false,
+    "qualityWinnerPromoted": false,
+    "appDefaultChanged": false,
+    "inputUnderstandingDeferred": true,
+    "completionProven": false,
+    "decision": "Retain this as an experimental articulation controller. Moving resonances modestly improves spectral error over blending, but does not establish naturalness or identity. Fitted timing is not promoted. A full reference-envelope diagnostic improves spectrum and identity more, but remains far from direct reconstruction and loses pitch coverage.",
+    "limits": [
+      "Every candidate receives target pitch, duration and RMS; this does not generate new pronunciation or prosody independently.",
+      "Endpoint data come from synthetic Kokoro development words. No general short-reference or human voice cloning evidence.",
+      "The nine-parameter curves are fitted spectral timing controls, not new neural phoneme learning or predictive coding.",
+      "WORLD envelope and Praat formant extraction are external offline analysis; runtime combines the existing neural decoder with project DSP.",
+      "The complete-envelope condition is a post-validation oracle diagnostic and must not be counted as independent generalization.",
+      "Six of eighteen natural teacher nuclei fail the same strict dual pitch gate; pass counts are diagnostics, not listening judgments.",
+      "Speech-trained speaker embeddings are uncertain on short vowel nuclei. Original and direct-reconstruction baselines remain visible.",
+      "Raw over-full-scale samples are preserved. Equal-RMS audition gains provide playback headroom without repairing the underlying amplitude control.",
+      "The 18 dB envelope-ratio clamp precedes energy normalization and is not a final waveform peak or frequency-response bound.",
+      "No audible listening acceptance; the user reported they have not listened yet."
+    ],
+    "nextExperiment": "Using the same complete-envelope diagnostic, isolate phase changes introduced by the time-varying minimum-phase filter with a fixed-delay linear-phase alternative. Keep excitation, envelope and amplitude controls unchanged; separately inspect common carrier crest factor before any promotion.",
+    "implementationHashes": {
+      "voice-research/audio_native/resonance_morph.py": "00cf72eb70d4ce65786037f989f54fd6a034d5f9c3525a04373b4cc9ea9b2f9d",
+      "voice-research/audio_native/test_resonance_morph.py": "d1ed4b07282edb6e383e7477b1b9a8499124d1d1ddd00b3d0696866c59a87eb4",
+      "voice-research/audio_native/prepare_morph_references.py": "e8abc9f4b279de5b680d678abab03187a42b2cbbbda6c26507ef21812ad9f6ca",
+      "voice-research/audio_native/benchmark_resonance_morph.py": "c9918ac563ad042e352ac2f659cbd963541534c82453ba09b39ef5cab822d7db",
+      "voice-research/audio_native/probe_morph_envelope_ceiling.py": "2ea60b883b756840fa2661c399af3b4d80018fb723fbd56ee94be3cdabd00804",
+      "voice-research/audio_native/evaluate_resonance_identity.py": "12b6e446e44886751b66d0da3235e3d3ff56357ad2b5d9afb83c2b9b33642763",
+      "voice-research/audio_native/summarize_resonance_morph.py": "786072266825ab017bd3d22a4b81dba89d1d04e545955bfd6b0007da95311538"
+    }
+  },
+  "wholeWordPlaybackCorrection": {
+    "scope": "Correct default widget behavior: complete natural words, explicit optional sustain",
+    "defaultPlayback": "word",
+    "naturalWordCount": 18,
+    "wordDurationsSeconds": {
+      "minimum": 0.41725,
+      "maximum": 0.617875
+    },
+    "http": {
+      "report": "evidence/live-voicebox/word-playback-v2/http-check.json",
+      "automaticallyCompletedWords": 18,
+      "maximumDecodedSampleError": 2.2351741790771484e-08,
+      "pitchedWordsWithUnchangedDuration": 3,
+      "explicitHoldVerified": {
+        "heldUntilRelease": true,
+        "finishedAfterRelease": true
+      }
+    },
+    "browser": {
+      "voice": "Heart",
+      "word": "palm",
+      "nativePitch": {
+        "firstPacketMs": 38,
+        "underruns": 0,
+        "finalStatus": "Word finished",
+        "queuedMs": 0
+      },
+      "plusThreeSemitones": {
+        "firstPacketMs": 85,
+        "underruns": 0,
+        "finalStatus": "Word finished",
+        "queuedMs": 0
+      },
+      "releaseButtonUsed": false,
+      "speakerOutputMutedDuringChecks": true,
+      "sustainIsExplicitMode": true,
+      "screenshot": "evidence/live-voicebox/word-playback-v2/browser-ready.jpg",
+      "restoredState": {
+        "voice": "Heart",
+        "word": "palm",
+        "playback": "Whole word",
+        "pitch": "native",
+        "speakerMonitorMuted": false,
+        "playing": false
+      }
+    },
+    "tests": {
+      "python": 8,
+      "javascript": 6,
+      "passed": true
+    },
+    "sourceInteriorTimingUnchanged": true,
+    "voiceDefaultChanged": false,
+    "playbackDefaultChanged": true,
+    "autoplay": false,
+    "newNeuralTraining": false,
+    "kokoroParityAccepted": false,
+    "userFeedback": "The widget voice sounded fine; its indefinite mid-word hold was unwanted. This does not accept all A/B comparisons.",
+    "updatedAt": "2026-11-07T19:41:38.629918+00:00",
+    "complete": true,
+    "implementationHashes": {
+      "voice-research/live_voicebox/server.py": "f632f9d381b26d45dce4e4e324f38ba43786509d878538a22d03bfd70ce0c3dc",
+      "voice-research/live_voicebox/test_runtime.py": "9ccf331ef91c7c6228448854c6063729634162b86321c6493d011b5a3bf55ca9",
+      "voice-research/live_voicebox/runtime.py": "b735624ab87b40b28b2f7bce337fa8ad7d6eb32636492260d1a0fdaf8b186157",
+      "voice-research/live_voicebox/check_words.py": "b0e96a5467aca2040512257118af428f7cdf71b050dd2672ed15cdddfd38187f",
+      "voice-research/live_voicebox/check_http.py": "e60458e776b07a3c1d4098a00cb63d672b50353dbd7467b35f433cef424eb049",
+      "voice-research/live_voicebox/prepare.py": "10a382832941a6e96ce54d401ca7b0f9727e6d2c3f5b2fcc65c3ce04077f8ac9",
+      "voice-research/live_voicebox/prepare_words.py": "5d3f0150d1971613719ffb3f4758c92adc80f0aee57742a32bda2f3a3414341c",
+      "voice-research/live_voicebox/public/index.html": "bdec601f031251105b80a03d82cab253f208061d88693223d94b45a7984d6440",
+      "voice-research/live_voicebox/public/pcm-player.js": "fe0568ffe8c88d00d9f63e6590f8f4e929525e7c66c2978ff1f025254879f7e8",
+      "voice-research/live_voicebox/public/pcm-ring.js": "3592ce0b077116b765d77d8952e3e9bd88d1e541ef8ebf95646c9c04a5412981",
+      "voice-research/live_voicebox/public/style.css": "77095694fbe7287e37acb24076f21c613b49c6458579d109a70e381eebe79d54",
+      "voice-research/live_voicebox/public/pcm-bytes.js": "06236df792002a3289f003305de2d3f19e2d7a99b73005fa6fbffbbc8ded81b2",
+      "voice-research/live_voicebox/public/app.js": "f78c7f0acf2cb562cbde8a747f78037c3014db1123d6b198299a3e0e18843d76"
+    }
+  },
+  "voiceCharacterControls": {
+    "scope": "Four additional output controls and explicit Kokoro source labeling",
+    "complete": true,
+    "createdAt": "2026-11-07T20:16:31.627009+00:00",
+    "controls": [
+      "pitch",
+      "volume",
+      "resonance",
+      "brightness",
+      "pace",
+      "vibrato"
+    ],
+    "newControls": [
+      "resonance",
+      "brightness",
+      "pace",
+      "vibrato"
+    ],
+    "newNeuralTraining": false,
+    "kokoroRequiredDuringDecoding": false,
+    "sourcePerformancesDerivedFromKokoro": true,
+    "unseenSpeechGenerationDemonstrated": false,
+    "newColourListeningAccepted": false,
+    "pythonTests": 14,
+    "javascriptTests": 6,
+    "offlineRenders": 198,
+    "httpStreams": 4,
+    "maximumObservedPeak": 0.419099360704422,
+    "maximumOfflineP95ComputeMs": 1.2111244723200798,
+    "maximumHttpP95ComputeMs": 3.299725521355865,
+    "peakSafetySamples": 0,
+    "maximumNeutralReconstructionError": 2.2351741790771484e-08,
+    "implementationSha256": {
+      "voice-research/live_voicebox/check_http.py": "e60458e776b07a3c1d4098a00cb63d672b50353dbd7467b35f433cef424eb049",
+      "voice-research/live_voicebox/check_shapes.py": "221ddaf6c3d094b2cdb6e7f3949cb7ba29bd1c7a2991d7cdc6fabca6fbf41bf8",
+      "voice-research/live_voicebox/check_words.py": "b0e96a5467aca2040512257118af428f7cdf71b050dd2672ed15cdddfd38187f",
+      "voice-research/live_voicebox/prepare.py": "10a382832941a6e96ce54d401ca7b0f9727e6d2c3f5b2fcc65c3ce04077f8ac9",
+      "voice-research/live_voicebox/prepare_words.py": "5d3f0150d1971613719ffb3f4758c92adc80f0aee57742a32bda2f3a3414341c",
+      "voice-research/live_voicebox/runtime.py": "f2a13f8341daa28d6c67510e2064535972518a563aa175b53ca07a971ccc523f",
+      "voice-research/live_voicebox/server.py": "f632f9d381b26d45dce4e4e324f38ba43786509d878538a22d03bfd70ce0c3dc",
+      "voice-research/live_voicebox/test_runtime.py": "d6dfff09795d754bf29cf3dee0a62a4f0ddffb139dff9beeae0b0d2ef90239ce",
+      "voice-research/live_voicebox/test_voice_colour.py": "285106646dd469aed845a5161faa0ddd0c8425ce60e1e8341f86377ebd2a0f86",
+      "voice-research/live_voicebox/voice_colour.py": "c84a3182180ddf7e773fbbf6f22fcb44fa2681ea8c19f84c94882584b7442891",
+      "voice-research/live_voicebox/public/app.js": "34cc00b3076c345d6e6be95fb276a5531864ab8ef9256550e9bc34124c4536d5",
+      "voice-research/live_voicebox/public/index.html": "0093f230a71e7e9f191531d9b9dfad0c109b5833a23f669635a7c8259a6f5fcf",
+      "voice-research/live_voicebox/public/pcm-bytes.js": "06236df792002a3289f003305de2d3f19e2d7a99b73005fa6fbffbbc8ded81b2",
+      "voice-research/live_voicebox/public/pcm-player.js": "fe0568ffe8c88d00d9f63e6590f8f4e929525e7c66c2978ff1f025254879f7e8",
+      "voice-research/live_voicebox/public/pcm-ring.js": "3592ce0b077116b765d77d8952e3e9bd88d1e541ef8ebf95646c9c04a5412981",
+      "voice-research/live_voicebox/public/style.css": "37efa011dd9734d7b4a3f5dcd9355130b599deffba6df9fcba1cbcc8e51d3655"
+    },
+    "migration": {
+      "performed": false,
+      "nameAccepted": false,
+      "suggestedName": "Jaeger Sonara",
+      "suggestedRepository": "jaeger-sonara"
+    },
+    "browser": {
+      "speakerOutputMutedDuringChecks": true,
+      "word": {
+        "voice": "Heart",
+        "word": "calm",
+        "preset": "Warm",
+        "firstPacketMs": 152,
+        "p95ComputeMs": 1.57,
+        "underruns": 0,
+        "finalStatus": "Word finished"
+      },
+      "phrase": {
+        "voice": "Bella",
+        "phrase": 1,
+        "preset": "Gentle vibrato",
+        "firstPacketMs": 117,
+        "p95ComputeMs": 2.28,
+        "underruns": 0,
+        "finalStatus": "Performance finished"
+      },
+      "restoredNeutralControls": true,
+      "monitorRestoredAfterPlaybackStopped": true,
+      "comparisonLabelsRevealed": true,
+      "screenshot": "evidence/live-voicebox/voice-character-v3/browser-controls.jpg"
+    }
+  },
+  "lyraMigration": {
+    "project": "Jaeger Lyra",
+    "version": "0.1.0-alpha.1",
+    "date": "2026-11-07",
+    "runtimeManifest": "demo/bundle/manifest.json",
+    "verification": "evidence/lyra-verification/verification.json",
+    "independentCheckoutVerified": true,
+    "newNeuralTraining": false,
+    "modelDevelopmentDeferred": true,
+    "sourceModelWeightsChanged": false,
+    "phrasePulseTimingAdded": true
+  }
+}

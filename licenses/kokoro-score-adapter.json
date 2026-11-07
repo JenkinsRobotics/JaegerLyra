@@ -1,0 +1,23 @@
+{
+  "name": "Kokoro score-control research adapter",
+  "path": "kokoro_singing.py",
+  "derived_from": {
+    "package": "mlx-audio",
+    "version": "0.6.4",
+    "module": "mlx_audio/tts/models/kokoro/kokoro.py",
+    "sha256": "20eb334e7298d839478c2a8f5f6f26c08fce44ab07b309f73e14baa66e740a1d",
+    "license": "MIT",
+    "notice": "licenses/mlx-audio-LICENSE.txt"
+  },
+  "original_work": [
+    "score planner",
+    "duration allocation",
+    "pitch and vibrato controls",
+    "job integration"
+  ],
+  "model": "mlx-community/Kokoro-82M-bf16",
+  "training": "No training or weight changes",
+  "clean_room": false,
+  "quality": "Experimental; lyric clarity not accepted",
+  "cached_ui_job": "64caaff420c37854ec3efb39"
+}

@@ -1,0 +1,24 @@
+{
+  "purpose": "Prospective human-recording evaluation after selecting colored-noise candidate; no parameter retuning, human-reference fitting or new training",
+  "origin": "LibriSpeech dev-clean, Vassil Panayotov et al., derived from public LibriVox audiobook readings",
+  "sourcePage": "https://www.openslr.org/12/",
+  "archiveUrl": "https://openslr.trmal.net/resources/12/dev-clean.tar.gz",
+  "archiveMd5": "42e2234ba48799c1f50f24a7926300a1",
+  "archiveSha256": "76f87d090650617fca0cac8f88b9416e0ebf80350acb97b343a85fa903728ab3",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "selection": "Lowest reader ID in each published F/M group; first three utterance IDs with 3\u20139 s duration and at least six transcript words; first is reference, next two are targets. No selection by synthesis or recognition scores.",
+  "processing": "Original mono 16 kHz FLAC resampled to 24 kHz with scipy resample_poly(3,2); PCM24 artifacts, no loudness normalization or denoising",
+  "speakers": [
+    {
+      "id": 84,
+      "sexAsPublished": "F",
+      "name": "Christie Nowak"
+    },
+    {
+      "id": 174,
+      "sexAsPublished": "M",
+      "name": "Peter Eastman"
+    }
+  ]
+}

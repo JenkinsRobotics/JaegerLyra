@@ -1,27 +1,32 @@
-# STATUS
+# Jaeger Lyra — current status
 
-> Truthful, or it's worthless. Any commit that changes behavior updates
-> this file in the same commit — see `CONVENTIONS.md` → "STATUS stays
-> truthful." This is a seed; replace everything below once the repo has
-> real history.
+Updated November 7, 2026. Version 0.1.0-alpha.1 is a research prototype, not a production TTS/STT release.
 
-## Current state — {{DATE}}
+This alpha is an R&D handoff. Further model development is deferred.
 
-- **Repo:** `{{REPO_NAME}}` — {{DESCRIPTION}}
-- **Version:** see `VERSION` / `pyproject.toml`'s `dynamic` version field
-- **JaegerOS pin:** not yet set — fill in once `pyproject.toml.example`
-  has a real dependency range (see README checklist)
-- **What works:** nothing yet — this is a freshly-scaffolded template
-  instance
-- **What's stubbed:** every `*.example` file under `src/{{package_name}}/`
-  — `module.yaml`, `config.py`, `node.py`, the module-contract test
-- **Known gaps:** (list real ones here as they appear; delete this line
-  once there's real content)
+## Working
 
-## How to update this file
+- Self-contained local reconstruction demo: `python -m jaeger_lyra --port 8794`.
+- Independent neural waveform decoding of prepared Kokoro-derived acoustic controls.
+- Eighteen whole-word captures, explicit held-vowel mode and nine phrase comparisons.
+- Pitch, volume, experimental resonance/brightness, pace and vibrato controls.
+- Automatic whole-word completion, cancellation, bounded browser audio queues and no autoplay.
+- Included hash-checked demo bundle. No avatar application, Kokoro model, network inference or account required at playback.
+- Source/reconstruction labels and implemented-versus-planned architecture are visible in the demo.
+- Research, legacy reference infrastructure and local evidence migrated into this repository; old avatar paths link here.
 
-1. Ship a behavior change.
-2. In the same commit, add or edit a line above reflecting the new truth.
-3. If something moves from "planned" to "shipped," delete it from
-   `../roadmap/` (or mark it done there) — don't leave the same fact
-   living in two docs, per `CONVENTIONS.md` law 1.
+## Not established
+
+- Natural independent generation of unseen speech or new articulatory sequences.
+- General singing, short-reference voice cloning or robust speaker matching.
+- Semantic audio understanding or a unified end-to-end audio reasoning model.
+- A general non-backpropagation learning solution, strict clean-room provenance or Kokoro-level new-speech quality.
+- A JaegerOS module/slot adapter or installable production inference API (planned).
+
+## Validation
+
+Local alpha checks passed: **163 core + 14 runtime/colour + 26 legacy-adapter + 6 browser-audio = 209 automated tests**. All 119 bundled file hashes passed, as did nine neutral/vibrato phrase checks, isolated-checkout playback, complete-word/hold HTTP checks and 198 shaped catalogue renders. Silent browser checks of a word and a shaped phrase completed automatically with zero observed underruns.
+
+The migration verifier checks the packaged file hashes, all core numerical tests, live runtime tests, browser PCM tests, neutral reconstruction and actual phrase-vibrato effects. Live HTTP and silent browser checks are recorded in the local `evidence/lyra-verification/` directory. See the final migration validation record for observed counts and timings; historical research measurements remain in their original files.
+
+The demo's runtime dependencies are pinned in `requirements.txt`. Optional historical experiments keep their original separate lock files and model/data notices.

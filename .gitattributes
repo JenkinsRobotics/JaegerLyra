@@ -1,0 +1,5 @@
+# Keep binary model/audio artifacts and upstream notices byte-for-byte.
+*.npz -text -diff
+*.wav -text -diff
+*.jpg -text -diff
+licenses/** -text -whitespace

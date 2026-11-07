@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jaeger-lyra"
+version = "0.1.0a1"
+description = "Audio-native research and expressive neural reconstruction playback"
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+license = {file = "LICENSE"}
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+include = ["jaeger_lyra"]
+
+# Source checkout / editable development only. Model distribution and a stable
+# installable inference API are planned; the demo also needs demo/bundle/.

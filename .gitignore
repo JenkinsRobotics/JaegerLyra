@@ -64,4 +64,17 @@ htmlcov/
 
 # Real (non-example) config generated from the .example templates —
 # keep the templates tracked, never the filled-in versions.
-pyproject.toml
+
+# Local research history, downloaded reference engines, and audio caches
+.*-venv/
+.cache/
+models/
+voice-tools/
+checkpoints/
+evidence/
+voice-research/data/
+public/research/
+public/audio/
+
+# Only the audited self-contained demo bundle is versioned
+# (synthetic reference WAVs, acoustic controls and our decoder weights).

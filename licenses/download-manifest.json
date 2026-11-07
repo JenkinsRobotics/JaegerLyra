@@ -1,0 +1,74 @@
+[
+  {
+    "path": "models/voices/en_US-libritts-high.onnx",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts/high/en_US-libritts-high.onnx",
+    "sha256": "9127a559e11603f10b366d1a20ac7426826081dbc521de4c2420c57728d73f0f",
+    "bytes": 136673811
+  },
+  {
+    "path": "models/voices/en_US-libritts-high.onnx.json",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts/high/en_US-libritts-high.onnx.json",
+    "sha256": "2efdc6d7f954588b8180132cbd9b8001933fdd00932c92bc92fd0d2028a9eb3d",
+    "bytes": 20163
+  },
+  {
+    "path": "licenses/en_US-libritts-high-MODEL_CARD.md",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/libritts/high/MODEL_CARD",
+    "sha256": "c478d826aae8a6332f69509271a56083b9ece014a993e16fc79cb94968106a5f",
+    "bytes": 255
+  },
+  {
+    "path": "models/voices/en_US-ljspeech-medium.onnx",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx",
+    "sha256": "6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22",
+    "bytes": 63531379
+  },
+  {
+    "path": "models/voices/en_US-ljspeech-medium.onnx.json",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx.json",
+    "sha256": "141d612cc0a95ed7efc1ca936b845c2364967f2e9217c5dbfcf69fc4d6c65860",
+    "bytes": 4972
+  },
+  {
+    "path": "licenses/en_US-ljspeech-medium-MODEL_CARD.md",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ljspeech/medium/MODEL_CARD",
+    "sha256": "fbee1529c89d36b3fe76d7e9f3f832dce17f44900a52d76a9bda735654766b4d",
+    "bytes": 517
+  },
+  {
+    "path": "models/stt/model.bin",
+    "url": "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/main/model.bin",
+    "sha256": "1a5afae06a4db91c975c9a9d78be5cc110ee4ea022ad57d55492e4550e936b2a",
+    "bytes": 75537502
+  },
+  {
+    "path": "models/stt/config.json",
+    "url": "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/main/config.json",
+    "sha256": "14b1b421a90349bc551b881461426b561a874049cb9e4c4864f2ca384f6a7cc5",
+    "bytes": 2317
+  },
+  {
+    "path": "models/stt/tokenizer.json",
+    "url": "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/main/tokenizer.json",
+    "sha256": "929c5252409436dce1b38a75d1abbcb5e132d170d8e324e4e04ed915fa2d22df",
+    "bytes": 2128466
+  },
+  {
+    "path": "models/stt/vocabulary.txt",
+    "url": "https://huggingface.co/Systran/faster-whisper-tiny.en/resolve/main/vocabulary.txt",
+    "sha256": "ff77588746d3a2595d32ab5b69ffd7b95ce2441ac57533cb66fc3eb575a115cf",
+    "bytes": 422309
+  },
+  {
+    "path": "licenses/piper-GPL-3.0.txt",
+    "url": "https://raw.githubusercontent.com/OHF-Voice/piper1-gpl/main/COPYING",
+    "sha256": "0ae0485a5bd37a63e63603596417e4eb0e653334fa6c7f932ca3a0e85d4af227",
+    "bytes": 35148
+  },
+  {
+    "path": "licenses/piper-voices-repository-card.md",
+    "url": "https://huggingface.co/rhasspy/piper-voices/resolve/main/README.md",
+    "sha256": "33e93643fce5180886300f9f0070eeeab8af148efb8e84361f8904def80fd9fb",
+    "bytes": 497
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "scope": "Existing research dependency now additionally used for offline vocal-shape reference synthesis",
+  "pyworldVersion": "0.3.5",
+  "pyworldLicense": "MIT",
+  "pyworldLicenseSource": "Installed 0.3.5 wheel distribution",
+  "pyworldLicenseSha256": "705066462de18626fa19884f2b87354653bc74ac13962932da1857f606739b15",
+  "worldLicense": "BSD-3-Clause",
+  "worldLicenseSource": "https://raw.githubusercontent.com/mmorise/World/master/LICENSE.txt",
+  "worldLicenseSha256": "6921ef0a65a931509b4055075fd847d7257c4094609075dd0615e8e997215f7e",
+  "worldBundledCommit": "Not exposed by installed wheel; upstream licence reference is not a claim of exact source revision",
+  "newModelWeights": false,
+  "coreReplaced": false
+}

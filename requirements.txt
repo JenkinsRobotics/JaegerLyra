@@ -1,0 +1,7 @@
+# Standalone demo, bundle preparation, and numerical tests; no Kokoro runtime.
+numpy==1.26.4
+scipy==1.17.1
+soundfile==0.13.1
+praat-parselmouth==0.4.6
+pyloudnorm==0.1.1
+pyworld==0.3.5

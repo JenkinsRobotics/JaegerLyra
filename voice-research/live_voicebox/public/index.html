@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jaeger Lyra · Reconstruction playback</title><link rel="stylesheet" href="/style.css">
+<main>
+  <header><a class="brand" href="#framework">JAEGER LYRA <span>/ VOICEBOX</span></a><span class="local" id="connection">Connecting locally</span></header>
+  <section class="intro"><p class="eyebrow">RECONSTRUCTION PLAYBACK · RESEARCH PROTOTYPE</p><h1>Hear the reconstruction.</h1><p>Lyra rebuilds a captured voice from saved acoustic controls.<br>Explore its colour and expression. This demo does not generate new sentences.</p>
+    <div class="reconstruction-path" aria-label="Current reconstruction process"><span><strong>Source recording</strong>Kokoro reference</span><b aria-hidden="true">→</b><span><strong>Acoustic controls</strong>Prepared offline</span><b aria-hidden="true">→</b><span><strong>Lyra voicebox</strong>Reconstructed waveform</span></div>
+    <p class="source-note">Kokoro supplied the recordings and synthetic training audio. Its model is not running during Lyra reconstruction playback.</p>
+  </section>
+  <section class="instrument" aria-label="Live vocal instrument">
+    <div class="stage">
+      <div class="stage-top"><span id="voice-label">HEART / CALM</span><span class="state" id="state">Ready</span></div>
+      <div class="orb" aria-hidden="true"><div class="orbit one"></div><div class="orbit two"></div><div class="core"><span id="note">G♯3</span><small id="hz-label">208 Hz</small></div></div>
+      <canvas id="scope" width="900" height="130" aria-label="Waveform of the live audio output"></canvas>
+      <div id="keys" class="keys" aria-label="Musical notes"></div>
+      <p class="stage-caption" id="stage-caption">The complete word plays once and finishes automatically.</p>
+    </div>
+    <div class="controls">
+      <p class="eyebrow">CAPTURED KOKORO VOICE · LYRA PLAYBACK</p><div class="selects"><div><label for="voice">Voice</label><select id="voice" disabled></select></div><div><label for="word">Word</label><select id="word" disabled></select></div></div>
+      <div class="playback-choice"><label for="playback">Playback</label><select id="playback" disabled><option value="word" selected>Whole word</option><option value="syllable">Hold a note</option></select></div>
+      <label class="range-label" for="pitch">Pitch <output id="pitch-value"></output></label><input id="pitch" type="range" min="0" max="1000" value="500" disabled>
+      <div class="range-ends"><span>Low</span><span>High</span></div>
+      <label class="range-label" for="volume">Volume <output id="volume-value">75%</output></label><input id="volume" type="range" min="0" max="100" value="75" disabled>
+      <div class="buttons word-playback"><button id="start" class="primary" disabled>Reconstruct word</button><button id="release" hidden disabled>Finish word</button></div>
+      <button id="stop" class="stop" disabled>■ Stop <kbd>Esc</kbd></button>
+      <p class="help" id="playback-help">Plays the full word with its natural timing. Choose pitch before playback; volume can change while it plays.</p>
+    </div>
+  </section>
+  <p id="status" role="status">Loading the prepared voices…</p>
+  <section class="shaping" aria-labelledby="shape-title">
+    <div class="section-top"><div><p class="eyebrow">VOICE CHARACTER · EXPERIMENTAL</p><h2 id="shape-title">More than pitch.</h2></div><button id="reset-shape" disabled>Reset controls</button></div>
+    <div class="shape-presets" aria-label="Voice shape starting points"><button data-shape="warm" disabled>Warm</button><button data-shape="light" disabled>Light</button><button data-shape="expressive" disabled>Gentle vibrato</button></div>
+    <div class="shape-grid">
+      <div><label class="range-label" for="resonance">Resonance <output id="resonance-value">Natural</output></label><input id="resonance" type="range" min="85" max="118" value="100" disabled><div class="range-ends"><span>Darker vowel colour</span><span>Lighter vowel colour</span></div></div>
+      <div><label class="range-label" for="brightness">Brightness <output id="brightness-value">Natural</output></label><input id="brightness" type="range" min="-40" max="40" value="0" disabled><div class="range-ends"><span>Softer highs</span><span>Brighter highs</span></div></div>
+      <div><label class="range-label" for="pace">Pace <output id="pace-value">1.00×</output></label><input id="pace" type="range" min="75" max="135" value="100" disabled><div class="range-ends"><span>Slower</span><span>Faster</span></div></div>
+      <div><label class="range-label" for="vibrato">Vibrato <output id="vibrato-value">Off</output></label><input id="vibrato" type="range" min="0" max="60" value="0" disabled><div class="range-ends"><span>Steady</span><span>More pitch movement</span></div></div>
+    </div>
+    <p class="help" id="shape-help">Choose a shape, then reconstruct a word or phrase. Pace changes timing without changing pitch. These controls explore voice colour; they do not yet match a person’s voice.</p>
+  </section>
+  <details class="diagnostics"><summary>Live connection details</summary><label style="margin-top:16px"><input type="checkbox" id="mute"> Silent check — process the audio with speaker output muted</label><div class="stats"><p>First audio packet<strong id="first-packet">—</strong></p><p>Queued in browser<strong id="queue">—</strong></p><p>Buffer underruns<strong id="underruns">—</strong></p><p>Compute per 5 ms block<strong id="compute">—</strong></p></div><p>First packet is measured from pressing Start. Audio-device latency is not included. The held-voice engine adds 20 ms; the browser initially buffers 40 ms. Playback uses short fades at starts, stops and recovery from an underrun.</p></details>
+  <section class="comparison" aria-labelledby="compare-title"><div class="section-top"><div><p class="eyebrow">RECONSTRUCTION COMPARISON</p><h2 id="compare-title">Kokoro source. Lyra reconstruction.</h2></div><span class="small-tag">9 captured phrases</span></div>
+    <p class="comparison-explainer">One player is the original Kokoro recording; the other is a saved Lyra reconstruction of the same performance. Reveal the labels to identify them.</p>
+    <label for="phrase">Kokoro source voice and phrase</label><select id="phrase" disabled></select><blockquote id="phrase-text"></blockquote>
+    <div class="players"><div><h3>A <span id="label-a">Label hidden</span></h3><audio id="audio-a" controls preload="none" aria-label="Listen to version A"></audio></div><div><h3>B <span id="label-b">Label hidden</span></h3><audio id="audio-b" controls preload="none" aria-label="Listen to version B"></audio></div></div>
+    <div class="comparison-actions"><button id="reveal" disabled>Reveal source / reconstruction</button><button id="speech" disabled>Reconstruct phrase live ↗</button><span>Matched loudness · no autoplay</span></div>
+    <p class="help">“Reconstruct phrase live” runs the Lyra decoder with your four voice-character controls. The A/B players keep the unmodified comparison. The words, voice and delivery originate in the captured performance.</p>
+  </section>
+  <section class="framework" id="framework" aria-labelledby="framework-title"><p class="eyebrow">THE WIDER LYRA FRAMEWORK</p><h2 id="framework-title">From ears to voicebox.</h2><p class="framework-intro">The intended audio-to-audio path. This demo exercises the output side.</p>
+    <div class="framework-grid"><article><span class="stage-badge">Offline prototype</span><h3>01 · Ears</h3><p>An audio encoder preserves information from the incoming waveform.</p></article><article><span class="stage-badge planned">Planned</span><h3>02 · Inference</h3><p>Interpret sound, meaning, speaker cues and context.</p></article><article><span class="stage-badge">Manual / captured</span><h3>03 · Controller</h3><p>Determine the articulation, timing and expression to produce.</p></article><article><span class="stage-badge working">Reconstruction works</span><h3>04 · Voicebox</h3><p>A waveform decoder turns the acoustic plan into audible samples.</p></article></div>
+  </section>
+  <footer><strong>Reconstruction is the current milestone.</strong> Independent new speech, general singing, short-reference cloning and semantic audio understanding remain research goals. Continuous acoustic representations connect the proposed stages; a transcript is not a required middle step in the intended design. <a href="https://github.com/JenkinsRobotics/JaegerLyra">JaegerLyra repository ↗</a></footer>
+</main><script type="module" src="/app.js"></script>
+</html>

@@ -1,0 +1,57 @@
+{
+  "schema": "aether.voice.performance.draft-1",
+  "status": "proposal, not the current KIN API",
+  "mode": "sing",
+  "locale": "en-US",
+  "speaker": {
+    "id": "character-01",
+    "referenceAsset": "local-approved-reference.wav"
+  },
+  "text": "Stay with me",
+  "delivery": {
+    "energy": 0.6,
+    "breathiness": 0.15,
+    "tension": 0.25
+  },
+  "score": {
+    "tempoBpm": 104,
+    "notes": [
+      {
+        "lyric": "Stay",
+        "midi": 60,
+        "startBeats": 0,
+        "durationBeats": 1
+      },
+      {
+        "lyric": "with",
+        "midi": 62,
+        "startBeats": 1,
+        "durationBeats": 1
+      },
+      {
+        "lyric": "me",
+        "midi": 64,
+        "startBeats": 2,
+        "durationBeats": 2,
+        "vibrato": {
+          "rateHz": 5,
+          "depthCents": 15,
+          "delayBeats": 0.5
+        }
+      }
+    ]
+  },
+  "output": {
+    "sampleRate": 24000,
+    "channels": 1,
+    "stream": true,
+    "events": [
+      "audio",
+      "phoneme",
+      "word",
+      "note",
+      "done"
+    ],
+    "requestId": "example-performance-001"
+  }
+}

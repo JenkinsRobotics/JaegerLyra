@@ -1,0 +1,55 @@
+[
+  {
+    "model": "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-4bit",
+    "revision": "f35faf19b0cc2160865af64ecf0f22f83d335135",
+    "license": "Apache-2.0",
+    "used_by_default": false,
+    "status": "Rejected for accent; weights removed. Archived test audio and model cards retained."
+  },
+  {
+    "model": "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit",
+    "revision": "41d3337e8b7f2843a75841595fc14e4b9a7a4b96",
+    "license": "Apache-2.0",
+    "used_by_default": false,
+    "status": "Rejected for accent; weights removed. Archived test audio and model cards retained."
+  },
+  {
+    "model": "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit",
+    "revision": "50f45ef0047cde7e84c2ef04326acb8ada2436a7",
+    "license": "Apache-2.0",
+    "used_by_default": false,
+    "status": "Rejected for accent; weights removed. Archived test audio and model cards retained."
+  },
+  {
+    "model": "ACE-Step/Ace-Step1.5",
+    "revision": "19671f406d603126926c1b7e2adc169acbcade22",
+    "source_commit": "ca1e85fe9430179831e6bc6be790c332190a3866",
+    "license": "MIT (see bundled upstream license and model card)"
+  },
+  {
+    "model": "mlx-community/Kokoro-82M-bf16",
+    "revision": "a71e4d38b236d968966a2002c4c895dbd12b1c3c",
+    "license": "Apache-2.0",
+    "used_by_default": true,
+    "default_voice": "af_heart, American English"
+  },
+  {
+    "model": "mlx-community/chatterbox-turbo-8bit",
+    "revision": "2f2e21a03863f86a1274d1060dcc188e7cde77e1",
+    "license": "Converted card: Apache-2.0; original ResembleAI model: MIT",
+    "role": "Optional reference matching"
+  },
+  {
+    "model": "mlx-community/S3TokenizerV2",
+    "revision": "e0c9886f0e1c35ae85b1f27277416fb19fc72bec",
+    "role": "Local Chatterbox speech tokenizer"
+  },
+  {
+    "model": "lj1995/GPT-SoVITS v2ProPlus",
+    "revision": "8f8857563c040d542de108a2c18b0425abd6c9c5",
+    "code_commit": "04a44eb977586645f33594b72af13a035a2056c6",
+    "source": "https://github.com/RVC-Boss/GPT-SoVITS",
+    "code_license": "MIT",
+    "status": "Separate English reference-voice audition, not the default"
+  }
+]

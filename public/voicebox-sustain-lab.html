@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KIN · Sustain comparison</title>
+<style>
+:root{color-scheme:light;--ink:#322e37;--muted:#706976;--line:#d9d1c8;--paper:#f7f3ed;--accent:#654e75}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,sans-serif}
+main{max-width:1140px;margin:auto;padding:44px 28px 60px}.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--accent);font-weight:700}
+h1{font:500 clamp(32px,5vw,53px)/1.1 Georgia,serif;margin:16px 0}p{max-width:770px}.intro{color:var(--muted);font-size:18px}
+.selectors{display:flex;gap:20px;flex-wrap:wrap;margin:30px 0}label{display:grid;gap:7px;font-size:13px;font-weight:650}
+select{min-width:180px;padding:11px 34px 11px 13px;background:white;border:1px solid var(--line);border-radius:9px;color:var(--ink);font:inherit;font-size:15px}
+.players{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card{padding:23px 19px 20px;background:#fffdf9;border:1px solid var(--line);border-radius:17px;display:flex;flex-direction:column}
+.card.steady{border-color:#a990b5;background:#f4edf6}.tag{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--accent)}
+h2{font:500 25px/1.2 Georgia,serif;margin:12px 0 8px}.card p{font-size:14px;color:var(--muted);min-height:67px;margin:0 0 18px}.card audio{width:100%;margin-top:auto}
+.status{font-size:14px;color:var(--muted);min-height:24px;margin:19px 0}.note{margin:24px 0;color:var(--muted);font-size:14px}
+details{border-top:1px solid var(--line);margin-top:26px;padding-top:20px}summary{cursor:pointer;font-weight:650}.extras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}
+.extras section{min-width:0}.extras h3{font-size:14px;margin:0 0 12px}.extras audio{width:100%}a{color:var(--accent)}footer{font-size:13px;color:var(--muted);margin-top:30px}
+:focus-visible{outline:3px solid #b99bc8;outline-offset:3px}@media(max-width:780px){main{padding:28px 18px}.players,.extras{grid-template-columns:1fr}.card p{min-height:0}select{min-width:140px}.selectors{gap:14px}}
+</style>
+<main>
+ <div class="eyebrow">KIN / VOICEBOX STUDY</div>
+ <h1>A steadier vowel.</h1>
+ <p class="intro">Compare a repeating vowel, a steady captured cycle and a Kokoro reference. Pick a voice and word, then play one version at a time. These are experiments; no listening-quality winner has been accepted.</p>
+ <div class="selectors">
+  <label>Voice<select id="voice" aria-label="Voice"><option value="af_heart">Heart</option><option value="am_michael">Michael</option><option value="af_bella">Bella</option></select></label>
+  <label>Intended word<select id="word" aria-label="Intended word"><option value="me">Me</option><option value="see">See</option><option value="bee">Bee</option></select></label>
+  <label>Performance<select id="mode" aria-label="Performance"><option value="native">Held note</option><option value="melody">Melody</option><option value="short-native">Short word</option></select></label>
+ </div>
+ <div class="players">
+  <section class="card"><div class="tag">CURRENT LOOP</div><h2>A moving vowel</h2><p>Repeats a short captured span, moving through its original variations.</p><audio id="loop" aria-label="Current vowel loop" controls preload="none"></audio></section>
+  <section class="card steady"><div class="tag">STEADY SUSTAIN</div><h2>A captured cycle</h2><p>Uses one cycle from a part of the source selected for steadier spectral shape. This may also sound less natural.</p><audio id="steady" aria-label="Steady captured cycle" controls preload="none"></audio></section>
+  <section class="card"><div class="tag">VOICE REFERENCE</div><h2 id="reference-title">Kokoro reference</h2><p id="reference-description"></p><audio id="reference" aria-label="Kokoro reference" controls preload="none"></audio></section>
+ </div>
+ <p class="status" id="status" role="status">Loading comparisons…</p>
+ <p class="note">Listen for a clear onset, a recognizable vowel and a convincing voice through the held note. Clips are level matched within each word’s comparison. These playback files do not demonstrate live latency.</p>
+ <details><summary>Other sustain experiments</summary>
+  <div class="extras">
+   <section><h3>Fixed cycle from the original span</h3><audio id="fixedOriginal" aria-label="Fixed cycle from original span" controls preload="none"></audio></section>
+   <section><h3>Steadier span, still repeating</h3><audio id="stationaryLoop" aria-label="Steadier repeating span" controls preload="none"></audio></section>
+   <section id="control-reference-card"><h3>Experimental Kokoro stretch · failed control check</h3><p class="note">Our duration/pitch adaptation often loses voicing and changes the recognized word. This is not normal Kokoro speech or an accepted singing reference.</p><audio id="controlReference" aria-label="Experimental Kokoro stretch" controls preload="none"></audio></section>
+  </div>
+ </details>
+ <footer>The experimental instruments reuse captured synthetic sounds and a frozen neural decoder. They do not demonstrate new-word generation or general voice cloning. Original and controlled clips can contain pronunciation errors. Kokoro remains the studio’s default voice. <a href="/">Back to KIN</a></footer>
+</main>
+<script type="module">
+const root='/research/sustain-comparison/';
+const ids=['loop','steady','reference','controlReference','fixedOriginal','stationaryLoop'];
+const players=ids.map(id=>document.getElementById(id));
+const selectors=['voice','word','mode'].map(id=>document.getElementById(id));
+let groups=[];
+function update(){
+ const [voice,word,mode]=selectors.map(s=>s.value);
+ const group=groups.find(g=>g.speaker===voice&&g.word===word&&g.mode===mode);
+ if(!group)throw new Error('Missing comparison');
+ players.forEach((player,i)=>{player.pause();const clip=group[ids[i]];if(clip)player.src=root+clip.file;else player.removeAttribute('src');player.load()});
+ document.getElementById('control-reference-card').hidden=!group.controlReference;
+ document.getElementById('reference-title').textContent=group.referenceTitle;
+ document.getElementById('reference-description').textContent=group.referenceDescription;
+ document.getElementById('status').textContent=`${selectors[0].selectedOptions[0].text} · “${selectors[1].selectedOptions[0].text}” · ${group.title}. Ready to listen.`;
+}
+players.forEach(player=>player.addEventListener('play',()=>players.forEach(other=>{if(other!==player)other.pause()})));
+selectors.forEach(selector=>selector.addEventListener('change',update));
+try{
+ const response=await fetch(root+'manifest.json');if(!response.ok)throw new Error('Unable to load comparisons');
+ ({groups}=await response.json());update();
+}catch(error){document.getElementById('status').textContent=`Comparison unavailable: ${error.message}`;selectors.forEach(s=>s.disabled=true)}
+</script>
+</html>

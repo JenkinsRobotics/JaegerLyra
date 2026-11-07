@@ -1,0 +1,279 @@
+[
+  {
+    "name": "anyio",
+    "version": "4.16.0",
+    "license": "MIT",
+    "homepage": null,
+    "licenseFiles": [
+      "anyio-4.16.0.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "av",
+    "version": "18.1.0",
+    "license": "BSD-3-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "av-18.1.0.dist-info/licenses/AUTHORS.py",
+      "av-18.1.0.dist-info/licenses/AUTHORS.rst",
+      "av-18.1.0.dist-info/licenses/LICENSE.txt",
+      "av-18.1.0.dist-info/licenses/__pycache__/AUTHORS.cpython-313.pyc"
+    ]
+  },
+  {
+    "name": "click",
+    "version": "8.5.1",
+    "license": "BSD-3-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "click-8.5.1.dist-info/licenses/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "ctranslate2",
+    "version": "4.8.5",
+    "license": "MIT",
+    "homepage": "https://opennmt.net",
+    "licenseFiles": []
+  },
+  {
+    "name": "faster-whisper",
+    "version": "1.2.1",
+    "license": "MIT",
+    "homepage": "https://github.com/SYSTRAN/faster-whisper",
+    "licenseFiles": [
+      "faster_whisper-1.2.1.dist-info/LICENSE"
+    ]
+  },
+  {
+    "name": "filelock",
+    "version": "4.2.9",
+    "license": "MIT",
+    "homepage": null,
+    "licenseFiles": [
+      "filelock-4.2.9.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "flatbuffers",
+    "version": "25.12.19",
+    "license": "Apache 2.0",
+    "homepage": "https://google.github.io/flatbuffers/",
+    "licenseFiles": []
+  },
+  {
+    "name": "fsspec",
+    "version": "2026.9.0",
+    "license": "BSD-3-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "fsspec-2026.9.0.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0",
+    "license": "MIT",
+    "homepage": "https://github.com/python-hyper/h11",
+    "licenseFiles": [
+      "h11-0.16.0.dist-info/licenses/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "hf-xet",
+    "version": "1.8.0",
+    "license": "Apache-2.0",
+    "homepage": null,
+    "licenseFiles": [
+      "hf_xet-1.8.0.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "httpcore2",
+    "version": "2.16.0",
+    "license": "BSD-3-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "httpcore2-2.16.0.dist-info/licenses/LICENSE.md"
+    ]
+  },
+  {
+    "name": "httpx2",
+    "version": "2.16.0",
+    "license": "BSD-3-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "httpx2-2.16.0.dist-info/licenses/LICENSE.md"
+    ]
+  },
+  {
+    "name": "huggingface_hub",
+    "version": "2.4.0",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/huggingface/huggingface_hub",
+    "licenseFiles": [
+      "huggingface_hub-2.4.0.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "idna",
+    "version": "3.20",
+    "license": "BSD-3-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "idna-3.20.dist-info/licenses/LICENSE.md"
+    ]
+  },
+  {
+    "name": "numpy",
+    "version": "2.5.4",
+    "license": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+    "homepage": null,
+    "licenseFiles": [
+      "numpy-2.5.4.dist-info/licenses/LICENSE.txt",
+      "numpy-2.5.4.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+      "numpy-2.5.4.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+      "numpy-2.5.4.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+      "numpy-2.5.4.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+      "numpy-2.5.4.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+      "numpy-2.5.4.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+      "numpy-2.5.4.dist-info/licenses/numpy/ma/LICENSE",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+      "numpy-2.5.4.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+      "numpy/_core/include/numpy/random/LICENSE.txt",
+      "numpy/ma/LICENSE",
+      "numpy/random/LICENSE.md"
+    ]
+  },
+  {
+    "name": "onnxruntime",
+    "version": "1.31.1",
+    "license": "MIT License",
+    "homepage": "https://onnxruntime.ai",
+    "licenseFiles": [
+      "onnxruntime/LICENSE"
+    ]
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "license": "Apache-2.0 OR BSD-2-Clause",
+    "homepage": null,
+    "licenseFiles": [
+      "packaging-26.3.dist-info/licenses/LICENSE",
+      "packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+      "packaging-26.3.dist-info/licenses/LICENSE.BSD",
+      "packaging/licenses/__init__.py",
+      "packaging/licenses/__pycache__/__init__.cpython-313.pyc",
+      "packaging/licenses/__pycache__/_spdx.cpython-313.pyc",
+      "packaging/licenses/_spdx.py"
+    ]
+  },
+  {
+    "name": "pip",
+    "version": "25.2",
+    "license": "MIT",
+    "homepage": null,
+    "licenseFiles": [
+      "pip-25.2.dist-info/licenses/AUTHORS.txt",
+      "pip-25.2.dist-info/licenses/LICENSE.txt",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/cachecontrol/LICENSE.txt",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/certifi/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/dependency_groups/LICENSE.txt",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/distlib/LICENSE.txt",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/distro/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/msgpack/COPYING",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE.APACHE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/packaging/LICENSE.BSD",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/pkg_resources/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/platformdirs/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/pygments/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/pyproject_hooks/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/requests/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/resolvelib/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/rich/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/tomli/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/tomli/LICENSE-HEADER",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/tomli_w/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/truststore/LICENSE",
+      "pip-25.2.dist-info/licenses/src/pip/_vendor/urllib3/LICENSE.txt",
+      "pip/_vendor/packaging/licenses/__init__.py",
+      "pip/_vendor/packaging/licenses/__pycache__/__init__.cpython-313.pyc",
+      "pip/_vendor/packaging/licenses/__pycache__/_spdx.cpython-313.pyc",
+      "pip/_vendor/packaging/licenses/_spdx.py"
+    ]
+  },
+  {
+    "name": "piper-tts",
+    "version": "1.3.0",
+    "license": "GPL-3.0-or-later",
+    "homepage": "http://github.com/OHF-voice/piper1-gpl",
+    "licenseFiles": [
+      "../../../COPYING",
+      "piper_tts-1.3.0.dist-info/licenses/COPYING"
+    ]
+  },
+  {
+    "name": "protobuf",
+    "version": "7.36.2",
+    "license": "3-Clause BSD License",
+    "homepage": "https://developers.google.com/protocol-buffers/",
+    "licenseFiles": [
+      "protobuf-7.36.2.dist-info/LICENSE"
+    ]
+  },
+  {
+    "name": "PyYAML",
+    "version": "6.0.3",
+    "license": "MIT",
+    "homepage": "https://pyyaml.org/",
+    "licenseFiles": [
+      "pyyaml-6.0.3.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "tokenizers",
+    "version": "0.23.3",
+    "license": [
+      "License :: OSI Approved :: Apache Software License"
+    ],
+    "homepage": null,
+    "licenseFiles": []
+  },
+  {
+    "name": "tqdm",
+    "version": "4.70.1",
+    "license": "MPL-2.0 AND MIT",
+    "homepage": null,
+    "licenseFiles": [
+      "tqdm-4.70.1.dist-info/licenses/LICENCE"
+    ]
+  },
+  {
+    "name": "truststore",
+    "version": "0.10.5",
+    "license": "MIT",
+    "homepage": null,
+    "licenseFiles": [
+      "truststore-0.10.5.dist-info/licenses/LICENSE"
+    ]
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "license": "PSF-2.0",
+    "homepage": null,
+    "licenseFiles": [
+      "typing_extensions-4.16.0.dist-info/licenses/LICENSE"
+    ]
+  }
+]

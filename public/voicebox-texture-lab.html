@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KIN · Voice texture comparison</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f1e9;color:#302b35;font:16px/1.55 system-ui,sans-serif}main{max-width:1020px;margin:6vh auto;padding:0 28px 50px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;font-size:13px}.top span{letter-spacing:.14em;color:#78677d}a{color:#685079}h1{font-size:clamp(30px,5vw,48px);letter-spacing:-.045em;line-height:1.12;margin:36px 0 16px}p{max-width:780px}.intro{color:#746b77}.box{background:#fffcf7;border:1px solid #e4dace;border-radius:20px;padding:22px;margin:24px 0}label{font-size:13px;font-weight:650;display:block;margin-bottom:9px}select{width:100%;font:inherit;border:1px solid #d9cedd;background:white;color:inherit;padding:12px;border-radius:9px}#description{margin:16px 0 0}.players{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.player{min-width:0;background:#eee7f1;border:1px solid #ddd1e2;border-radius:14px;padding:20px}.letter{font-size:30px;font-weight:650}.identity{min-height:44px;color:#705c78;font-size:13px;margin:3px 0 14px}audio{width:100%;height:42px}.actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:22px}button{font:inherit;border:0;background:#584462;color:white;padding:11px 18px;border-radius:30px;cursor:pointer}button:focus-visible,a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #be92ca;outline-offset:3px}.hint{font-size:13px;color:#7c707c}.note{border-top:1px solid #dfd5ca;margin-top:28px;padding-top:18px;color:#786d79;font-size:14px}#status{font-size:14px;color:#75465b}details{font-size:14px;color:#786d79;margin-top:20px}summary{cursor:pointer}.references{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:20px 0}.references p{min-height:42px}.references audio{max-width:390px}@media(max-width:950px){.players{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){main{margin-top:25px;padding:0 18px}.players,.references{grid-template-columns:1fr}.player{padding:18px}.identity{min-height:24px}h1{margin-top:30px}}
+</style>
+<main>
+ <div class="top"><span>KIN / VOICE TEXTURE</span><a href="/">Back to the studio ↗</a></div>
+ <h1>Voice texture comparison</h1>
+ <p class="intro">Compare static synthesis, generated variation and a captured-vowel reference at the same pitch and vowel settings. Listen for a stable character and natural texture. No quality winner has been selected.</p>
+ <div class="box"><label for="clip">Choose a voice and performance</label><select id="clip" disabled><option>Loading comparisons…</option></select><p id="description"></p></div>
+ <div class="players">
+  <section class="player" aria-label="Version A"><div class="letter">A</div><div class="identity" id="identity-a">Label hidden</div><audio id="audio-a" aria-label="Listen to version A" controls preload="none"></audio></section>
+  <section class="player" aria-label="Version B"><div class="letter">B</div><div class="identity" id="identity-b">Label hidden</div><audio id="audio-b" aria-label="Listen to version B" controls preload="none"></audio></section>
+  <section class="player" aria-label="Version C"><div class="letter">C</div><div class="identity" id="identity-c">Label hidden</div><audio id="audio-c" aria-label="Listen to version C" controls preload="none"></audio></section>
+  <section class="player" aria-label="Version D"><div class="letter">D</div><div class="identity" id="identity-d">Label hidden</div><audio id="audio-d" aria-label="Listen to version D" controls preload="none"></audio></section>
+ </div>
+ <div class="actions"><button id="reveal" type="button" disabled>Reveal the methods</button><span class="hint">Matched loudness. Nothing plays automatically.</span></div>
+ <p id="status" role="status"></p>
+ <details><summary>Original voice and another generated take</summary><div class="references">
+  <div><p>The original Kokoro “Ah, ah, ah.” reference. This is a different performance, offered as a voice guide.</p><audio id="source" aria-label="Original Kokoro vowel reference" controls preload="none"></audio></div>
+  <div><p>Another take from the learned texture model. <span id="breath-note"></span></p><audio id="breath" aria-label="Second generated texture take" controls preload="none"></audio></div>
+ </div></details>
+ <p class="note">Generated texture uses a small stochastic model, with no recorded trajectory or future source audio supplied during rendering. The neural captured-vowel reference reuses a short sound patch. These experiments do not demonstrate new words, general cloning or accepted Kokoro-level quality. Kokoro remains the studio’s voice.</p>
+ <details><summary>How this comparison was prepared</summary><p>Every predefined voice is included. Each A/B/C/D group uses whole clips with constant gain to match loudness; there is no limiting, denoising or pitch correction. Labels are shuffled for an informal comparison. All 126 research renders are retained. Generated variation often reached its modulation bound, and added-breath pitch-tracker failures remain unresolved.</p></details>
+</main>
+<script type="module">
+const root='/research/generated-texture/',select=document.querySelector('#clip'),reveal=document.querySelector('#reveal');
+const players=['a','b','c','d'].map(id=>document.querySelector('#audio-'+id));
+const labels=['a','b','c','d'].map(id=>document.querySelector('#identity-'+id));
+const source=document.querySelector('#source'),breath=document.querySelector('#breath'),all=[...players,source,breath];
+let manifest,group,shown=false;
+function load(player,file){player.pause();player.src=root+file;player.load();}
+function display(){group=manifest.groups[Number(select.value)];shown=false;document.querySelector('#description').textContent=group.description;
+ players.forEach((player,i)=>{load(player,group.choices[i].file);labels[i].textContent='Label hidden';});
+ load(source,group.source.file);load(breath,group.breath.file);document.querySelector('#breath-note').textContent=group.breathNote;
+ reveal.textContent='Reveal the methods';document.querySelector('#status').textContent='';}
+all.forEach(player=>{player.addEventListener('play',()=>all.forEach(other=>{if(other!==player)other.pause();}));
+ player.addEventListener('error',()=>{document.querySelector('#status').textContent='An audio sample could not be loaded. Refresh to retry.';});});
+select.addEventListener('change',display);reveal.addEventListener('click',()=>{shown=!shown;labels.forEach((label,i)=>{label.textContent=shown?group.choices[i].label:'Label hidden';});reveal.textContent=shown?'Hide labels':'Reveal the methods';});
+try{const response=await fetch(root+'manifest.json');if(!response.ok)throw Error('manifest');manifest=await response.json();select.replaceChildren();
+ manifest.groups.forEach((item,i)=>{const option=document.createElement('option');option.value=i;option.textContent=item.voice+' · '+item.title;select.append(option);});
+ select.disabled=false;reveal.disabled=false;display();
+}catch{document.querySelector('#status').textContent='The comparisons are unavailable. Refresh after preparation finishes.';}
+</script>
+</html>
